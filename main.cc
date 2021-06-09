@@ -4,8 +4,8 @@
 
 using namespace std;
 
-void start() {
-	TuteLAN tl;
+void start(int ac, char **av) {
+	TuteLAN_Client tl(ac, 2, "hola");	//para que compile
 	tl.start();
 }
 

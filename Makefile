@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = main.cc TuteLAN.cc SDLGame.cc InputHandler.cc Vector2.cc Texture.cc
+OBJS = main.cc TuteLAN.cc SDLGame.cc InputHandler.cc Vector2.cc Texture.cc TL_Socket.cc Card.cc
 
 #CC specifies which compiler we're using
 CC = g++ -std=c++11
@@ -9,7 +9,7 @@ CC = g++ -std=c++11
 COMPILER_FLAGS = -w
 
 #LINKER_FLAGS specifies the libraries we're linking against
-LINKER_FLAGS = -lSDL2 -lSDL2_image
+LINKER_FLAGS = -lSDL2 -lSDL2_image 
 
 #OBJ_NAME specifies the name of our exectuable
 OBJ_NAME = TuteLAN

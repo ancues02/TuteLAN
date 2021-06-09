@@ -1,25 +1,56 @@
 #pragma once
 
 #include <vector>
+#include <string>
+
 #include "SDLGame.h"
 
-class TuteLAN {
+#include "Serializable.h"
+#include "TL_Socket.h"
+#include "Card.h"
+
+class TuteLAN_Server {
 
 public:
-	TuteLAN();
-	virtual ~TuteLAN();
+	TuteLAN_Server(const char * s, const char * p);
+	virtual ~TuteLAN_Server();
+
+	void init_game();
+	void update_game();
+
+private:
+	const uint8_t MAX_CLIENTS = 4;
+
+	uint8_t turn;		// 4 turnos
+	std::vector<Card> desk;
+
+	std::vector<std::unique_ptr<Socket>> clients;
+	Socket socket;
+};
+
+
+class TuteLAN_Client {
+
+public:
+	TuteLAN_Client(const char * s, const char * p, const char * n);
+	virtual ~TuteLAN_Client();
 
 	void start();
-	void stop();
 
 private:
 	void initGame();
 	void closeGame();
-	void initFactories();
 
 	SDLGame *game_;
 	bool exit_;
 
+	uint8_t client_ID;	// podemos deducir el equipo de aqui
+	std::string nick;
+	std::vector<Card> hand;
+
+	Socket socket;
+
+	// TO DO: pasar el tamaño en la constructora
 	const static int _WINDOW_WIDTH_ = 640;
 	const static int _WINDOW_HEIGHT_ = 480;
 
