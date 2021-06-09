@@ -1,8 +1,8 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = SDL_Test.cc
+OBJS = main.cc TuteLAN.cc SDLGame.cc
 
 #CC specifies which compiler we're using
-CC = g++
+CC = g++ -std=c++11
 
 #COMPILER_FLAGS specifies the additional compilation options we're using
 # -w suppresses all warnings
@@ -12,7 +12,7 @@ COMPILER_FLAGS = -w
 LINKER_FLAGS = -lSDL2
 
 #OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = SDL_Test
+OBJ_NAME = TuteLAN
 
 #This is the target that compiles our executable
 all : $(OBJS)
