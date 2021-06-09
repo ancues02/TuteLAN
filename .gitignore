@@ -9,3 +9,6 @@
 
 # Unignore all dirs
 !*/
+
+# Ignore .vscode
+.vscode/

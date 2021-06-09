@@ -16,14 +16,14 @@ public:
 	SDLGame& operator=(SDLGame&) = delete;
 
 	inline static SDLGame* init(string windowTitle, int width, int height) {
-		assert(instance_.get() == nullptr);
-		instance_.reset(new SDLGame(windowTitle, width, height));
-		return instance_.get();
+		assert(instance_ == nullptr);
+		instance_ = new SDLGame(windowTitle, width, height);
+		return instance_;
 	}
 
 	inline static SDLGame* instance() {
-		assert(instance_.get() != nullptr);
-		return instance_.get();
+		assert(instance_ != nullptr);
+		return instance_;
 	}
 
 	inline SDL_Window* getWindow() const {
@@ -72,7 +72,7 @@ protected:
 	int width_; // window width
 	int height_; // window height
 
-	static unique_ptr<SDLGame> instance_;
+	static SDLGame* instance_;
 
 };
 

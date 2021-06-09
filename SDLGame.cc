@@ -3,9 +3,7 @@
 #include <time.h>
 #include <iostream>
 
-
-unique_ptr<SDLGame> SDLGame::instance_;
-
+SDLGame* SDLGame::instance_ = nullptr;
 
 SDLGame::SDLGame(string windowTitle, int width, int height) :
 		windowTitle_(windowTitle), width_(width), height_(height) {

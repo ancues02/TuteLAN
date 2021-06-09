@@ -5,8 +5,13 @@
 using namespace std;
 
 void start() {
+	std::cout << "hey\n";
 	TuteLAN tl;
+	std::cout << "2\n";
+
 	tl.start();
+	std::cout << "salgo\n";
+
 }
 
 int main(int ac, char **av) {

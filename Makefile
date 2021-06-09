@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = main.cc TuteLAN.cc SDLGame.cc
+OBJS = main.cc TuteLAN.cc SDLGame.cc InputHandler.cc Vector2.cc
 
 #CC specifies which compiler we're using
 CC = g++ -std=c++11
