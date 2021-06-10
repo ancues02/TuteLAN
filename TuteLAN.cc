@@ -57,7 +57,6 @@ void TuteLAN_Server::init_game() {
 
 	turn = 0;
 	createDesk();
-	//distribute
     update_game();
 
 
@@ -96,19 +95,30 @@ void TuteLAN_Server::createDesk(){
 		desk.push_back(Card(i, i%10));
 	}
 	
+	//TODO que el nick sea el correcto xd
+	for(int i=0; i< MAX_CLIENTS; ++i){
+		handClients.push_back(Hand(std::vector<Card>(), i, "Player"+i));
+	}
 }
 
 //repartir cartas
 void TuteLAN_Server::distributeCards()
 {
 	std::random_shuffle(desk.begin(), desk.end());
-	
+
+
 	int player=turn;
+
 	for (int i = 0; i < 40 ; ++i){
-		handClients[player%MAX_CLIENTS].push_back(desk[i]);
+		handClients[player%MAX_CLIENTS].getHand().push_back(desk[i]);
 		player++;		
 	}	
 	pinta = desk[39].getSuit();
+
+	for(int i = 0; i<clients.size(); ++i){		
+		socket.send(handClients[i], *clients[i].get());		
+	}
+	
 }
 
 
@@ -136,28 +146,35 @@ void TuteLAN_Client::closeGame() {
 
 void TuteLAN_Client::start() {
 	exit_ = false;
-	auto ih = InputHandler::instance();
 
 	while (!exit_) {
-		//recv el estado del juego del servidor
-		//si es tu turno, actualizas input y todo
-		Uint32 startTime = game_->getTime();
-		SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0xFF0000FF));
-		SDL_RenderClear(game_->getRenderer());
+		handleInput();
+		render();
+	}
+}
 
-		ih->update();
-		if (ih->keyDownEvent()) {
-			if (ih->isKeyDown(SDLK_ESCAPE)) {
-				exit_ = true;
-				break;
-			}
+void TuteLAN_Client::render() {
+	//recv el estado del juego del servidor
+	//si es tu turno, actualizas input y todo
+	Uint32 startTime = game_->getTime();
+	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0xFF0000FF));
+	SDL_RenderClear(game_->getRenderer());		
+
+	SDL_RenderPresent(game_->getRenderer());
+
+	Uint32 frameTime = game_->getTime() - startTime;
+	if (frameTime < 10)
+		SDL_Delay(10 - frameTime);
+}
+
+void TuteLAN_Client::handleInput() {
+	auto ih = InputHandler::instance();
+	ih->update();
+	if (ih->keyDownEvent()) {
+		if (ih->isKeyDown(SDLK_ESCAPE)) {
+			exit_ = true;			
 		}
-
-		SDL_RenderPresent(game_->getRenderer());
-
-		Uint32 frameTime = game_->getTime() - startTime;
-		if (frameTime < 10)
-			SDL_Delay(10 - frameTime);
+		//aqui mandar los mensajes
 	}
 }
 

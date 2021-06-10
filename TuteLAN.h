@@ -34,7 +34,7 @@ private:
 	uint8_t turn;		// 4 turnos
 	uint8_t pinta; //el palo dominante de la ronda
 	std::vector<Card> desk;//mazo para repartir al principio
-	std::vector<std::vector<Card>> handClients;//el servidor sabe de la mano de cada cliente
+	std::vector<Hand> handClients;//el servidor sabe de la mano de cada cliente
 	uint8_t team1_points=0, team2_points=0; //los puntos de cada equipo
 
 	std::vector<std::unique_ptr<Socket>> clients;
@@ -53,6 +53,9 @@ public:
 private:
 	void initGame();
 	void closeGame();
+
+	void render();
+	void handleInput();
 
 	SDLGame *game_;
 	bool exit_;
