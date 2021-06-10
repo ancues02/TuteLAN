@@ -12,6 +12,7 @@ Socket::Socket(const char * address, const char * port):sd(-1)
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
 
     int rc = getaddrinfo(address, port, &hints, &res);
     if(rc != 0){
@@ -47,7 +48,7 @@ int Socket::recv(Serializable &obj, Socket * &sock)
 
     if ( sock != 0 )
     {
-        sock = new Socket(&sa, sa_len);
+        sock = new Socket(-1, &sa, sa_len);
     }
 
     obj.from_bin(buffer);

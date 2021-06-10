@@ -65,7 +65,7 @@ public:
     /**
      *  Inicializa un Socket copiando los parámetros del socket
      */
-    Socket(struct sockaddr * _sa, socklen_t _sa_len):sd(-1), sa(*_sa),
+    Socket( int sd_,struct sockaddr * _sa, socklen_t _sa_len):sd(sd_), sa(*_sa),
         sa_len(_sa_len){};
 
     virtual ~Socket(){};
@@ -107,6 +107,30 @@ public:
     int bind()
     {
         return ::bind(sd, (const struct sockaddr *) &sa, sa_len);
+    }
+
+    /**
+     *  TODO comentar
+     */
+    int listen(int maxClients)
+    {
+        return ::listen(sd, maxClients);
+    }
+
+    /**
+     * 
+     */
+    int accept( sockaddr *sa_, socklen_t* sa_len_)
+    {
+        return ::accept(sd, sa_, sa_len_);
+    }
+
+    /**
+     * 
+     */
+    int connect(const sockaddr *sa_,socklen_t sa_len_ )
+    {
+        return ::connect(sd,  sa_, sa_len_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Socket& dt);
