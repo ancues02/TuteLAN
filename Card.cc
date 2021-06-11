@@ -1,7 +1,87 @@
 #include "Card.h"
 
 
-Card::Card( uint8_t number_, uint8_t suit_):suit(suit_) , number(number_){} 
+TuteMSG::TuteMSG(): TuteBase(0), content(-1) {
+} 
+
+TuteMSG::TuteMSG(uint8_t _type, uint8_t _cnt): TuteBase(_type), content(_cnt) {
+} 
+
+void TuteMSG::to_bin()
+{
+    alloc_data(MSG_SIZE);
+
+    memset(_data, 0, MSG_SIZE);
+
+    //Serializar los campos type, nick y message en el buffer _data
+    char* tmp=_data;
+
+    memcpy(tmp, &type, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
+
+    memcpy(tmp, &content, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
+}
+
+int TuteMSG::from_bin(char * bobj)
+{
+    alloc_data(MSG_SIZE);
+
+    memcpy(static_cast<void *>(_data), bobj, MSG_SIZE);
+
+    char* tmp = _data;
+
+    memcpy(&type,tmp, sizeof(uint8_t));
+    tmp+=sizeof(uint8_t);
+
+    memcpy(&content,tmp, sizeof(uint8_t));
+    tmp+=sizeof(uint8_t);
+
+    return 0;
+}
+
+TuteCante::TuteCante(): TuteBase(0), content(-1) {
+} 
+
+TuteCante::TuteCante(uint8_t _type, uint8_t _cnt, uint8_t _player): TuteBase(_type), content(_cnt), player(_player) {
+} 
+
+void TuteCante::to_bin()
+{
+    alloc_data(CANTE_SIZE);
+
+    memset(_data, 0, CANTE_SIZE);
+
+    //Serializar los campos type, nick y message en el buffer _data
+    char* tmp=_data;
+
+    memcpy(tmp, &type, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
+
+    memcpy(tmp, &content, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
+}
+
+int TuteCante::from_bin(char * bobj)
+{
+    alloc_data(CANTE_SIZE);
+
+    memcpy(static_cast<void *>(_data), bobj, CANTE_SIZE);
+
+    char* tmp = _data;
+
+    memcpy(&type,tmp, sizeof(uint8_t));
+    tmp+=sizeof(uint8_t);
+
+    memcpy(&content,tmp, sizeof(uint8_t));
+    tmp+=sizeof(uint8_t);
+
+    return 0;
+}
+
+Card::Card(): TuteBase(TuteType::CARD), suit(-1) , number(-1) {} 
+
+Card::Card( uint8_t number_, uint8_t suit_): TuteBase(TuteType::CARD), suit(suit_) , number(number_) {} 
 
 void Card::to_bin()
 {
@@ -12,11 +92,16 @@ void Card::to_bin()
     //Serializar los campos type, nick y message en el buffer _data
     char* tmp=_data;
 
+    memcpy(tmp, &type, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
+
     memcpy(tmp, &suit, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
 
     memcpy(tmp, &number, sizeof(uint8_t));
     tmp += sizeof(uint8_t);  
+
+    //memcpy(tmp, &client_ID, sizeof(uint8_t));
 
 }
 
@@ -28,17 +113,25 @@ int Card::from_bin(char * bobj)
 
     char* tmp = _data;
 
+    memcpy(&type,tmp, sizeof(uint8_t));
+    tmp+=sizeof(uint8_t);
+
     memcpy(&suit,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
 
     memcpy(&number,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);     
 
+    //memcpy(&client_ID,tmp, sizeof(uint8_t));
+
     return 0;
 }
 
+bool operator== (const Card &s1, const Card &s2){
+    return s1.number == s2.number && s1.suit == s2.suit;
+}
 
-Hand::Hand(const std::vector<Card> &hand_, uint8_t client_ID_,const std::string &nick_):hand(hand_) , client_ID(client_ID_), nick(nick_){} 
+Hand::Hand(const std::vector<Card> &hand_, uint8_t client_ID_,const std::string &nick_): TuteBase(TuteType::HAND), hand(hand_) , client_ID(client_ID_), nick(nick_) {} 
 
 //serializar la mano
 void Hand::to_bin()
@@ -49,6 +142,9 @@ void Hand::to_bin()
 
     //Serializar los campos type, nick y message en el buffer _data
     char* tmp=_data;
+
+    memcpy(tmp, &type, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
 
     memcpy(tmp, &client_ID, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
@@ -71,6 +167,9 @@ int Hand::from_bin(char * bobj)
     memcpy(static_cast<void *>(_data), bobj, HAND_SIZE);
 
     char* tmp = _data;
+        
+    memcpy(&type,tmp, sizeof(uint8_t));
+    tmp+=sizeof(uint8_t);
 
     memcpy(&client_ID,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
