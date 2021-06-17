@@ -3,7 +3,7 @@
 #include "Serializable.h"
 #include "TL_Socket.h"
 
-Socket::Socket(const char * address, const char * port):sd(-1)
+Socket::Socket(const char * address, const char * port, bool passive):sd(-1)
 {
     addrinfo hints;
     addrinfo *res;
@@ -12,7 +12,8 @@ Socket::Socket(const char * address, const char * port):sd(-1)
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    if(passive)
+        hints.ai_flags = AI_PASSIVE;
 
     int rc = getaddrinfo(address, port, &hints, &res);
     if(rc != 0){

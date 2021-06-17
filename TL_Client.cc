@@ -1,8 +1,18 @@
+#include <thread>
 #include "TuteLAN_Client.h"
 
 int main(int argc, char **argv)
 {
+	if(argc != 4){
+		std::cout << "Wrong Format, Usage...TODO\n";
+		return -1;
+	}
     TuteLAN_Client tc(argv[1], argv[2], argv[3]);
+	if(tc.connectToServer(argv[1], argv[2]) == -1) {
+		std::cout << "Couldn't connect to server\n";
+		return -1;
+	}
+	std::thread tl_thread([&tc](){ tc.recv_thread(); });
 
     try {
 		tc.start();

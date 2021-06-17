@@ -16,7 +16,7 @@ void TuteLAN_Server::init_game() {
 	 * 	Espera a que se connecten los 4 jugadores y entonces
 	 * 	lanza el juego
 	 */
-	
+	std::cout << "Servidor iniciado y esperando " << MAX_CLIENTS << " clientes\n";
 	int players=0;
     Socket* client;
     
@@ -39,13 +39,13 @@ void TuteLAN_Server::init_game() {
             continue;
         }   
         getnameinfo(&cliente, longCliente, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICSERV || NI_NUMERICHOST);
-        std::cout << "Conexion desde " << host << " " << serv << "\n"; 
         
         //ThreadTCP* miThread=new ThreadTCP(cliente_socket);
         //std::thread([miThread](){ miThread->do_message(); delete miThread;}).detach();
 		client=new Socket(cliente_socket,&cliente,longCliente);
 		clients.push_back(std::move(std::unique_ptr<Socket>(client)));   
 		players++;     
+		std::cout << "Conexion desde " << host << " " << serv << "\n"; 
     }
 
 	turn = 0;

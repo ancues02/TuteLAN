@@ -60,7 +60,7 @@ public:
      *    @param address cadena que representa la dirección o nombre
      *    @param port cadena que representa el puerto o nombre del servicio
      */
-    Socket(const char * address, const char * port);
+    Socket(const char * address, const char * port, bool passive = true);
 
     /**
      *  Inicializa un Socket copiando los parámetros del socket
@@ -137,6 +137,9 @@ public:
 
     friend bool operator== (const Socket &s1, const Socket &s2);
 
+    int getSockDesc() const { return sd; }
+    in_addr_t getAddr() const {return ((struct sockaddr_in*) &sa)->sin_addr.s_addr;}
+    in_port_t getPort() const {return ((struct sockaddr_in*) &sa)->sin_port;}
 protected:
 
     /**
