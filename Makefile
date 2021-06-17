@@ -1,5 +1,7 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = main.cc TuteLAN.cc SDLGame.cc InputHandler.cc Vector2.cc Texture.cc TL_Socket.cc Card.cc
+DEPS = SDLGame.h InputHandler.h Vector2.h Texture.h TL_Socket.h TuteSerializable.h TuteLAN_Client.h TuteLAN_Server.h
+
+OBJ = SDLGame.o InputHandler.o Vector2.o Texture.o TL_Socket.o TuteSerializable.o TuteLAN_Client.o TuteLAN_Server.o
 
 #CC specifies which compiler we're using
 CC = g++ -std=c++11
@@ -9,11 +11,21 @@ CC = g++ -std=c++11
 COMPILER_FLAGS = -w
 
 #LINKER_FLAGS specifies the libraries we're linking against
-LINKER_FLAGS = -lSDL2 -lSDL2_image 
-
-#OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = TuteLAN
+LINKER_FLAGS = -lSDL2 -lSDL2_image -lpthread
 
 #This is the target that compiles our executable
-all : $(OBJS)
-	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME)
+%.o: %.cc $(DEPS)
+	$(CC) -g -c -o $@ $< $(COMPILER_FLAGS)
+
+all: ts tc
+	
+ts: $(OBJ) TL_Server.o
+	$(CC) -o $@ $^ $(COMPILER_FLAGS) $(LINKER_FLAGS)
+
+tc: $(OBJ) TL_Client.o
+	$(CC) -o  $@ $^ $(COMPILER_FLAGS) $(LINKER_FLAGS)
+
+.PHONY: clean
+
+clean:
+	rm -f *.o ts tc

@@ -1,4 +1,4 @@
-#include "Card.h"
+#include "TuteSerializable.h"
 
 
 TuteMSG::TuteMSG(): TuteBase(0), content(-1) {
@@ -13,7 +13,6 @@ void TuteMSG::to_bin()
 
     memset(_data, 0, MSG_SIZE);
 
-    //Serializar los campos type, nick y message en el buffer _data
     char* tmp=_data;
 
     memcpy(tmp, &type, sizeof(uint8_t));
@@ -52,7 +51,6 @@ void TuteCante::to_bin()
 
     memset(_data, 0, CANTE_SIZE);
 
-    //Serializar los campos type, nick y message en el buffer _data
     char* tmp=_data;
 
     memcpy(tmp, &type, sizeof(uint8_t));
@@ -60,6 +58,9 @@ void TuteCante::to_bin()
 
     memcpy(tmp, &content, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
+
+    memcpy(tmp, &player, sizeof(uint8_t));
+
 }
 
 int TuteCante::from_bin(char * bobj)
@@ -75,6 +76,8 @@ int TuteCante::from_bin(char * bobj)
 
     memcpy(&content,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
+
+    memcpy(&player,tmp, sizeof(uint8_t));
 
     return 0;
 }

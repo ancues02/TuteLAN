@@ -1,18 +1,11 @@
-#include "TuteLAN.h"
+#include "TuteLAN_Client.h"
 
-#include <iostream>
+int main(int argc, char **argv)
+{
+    TuteLAN_Client tc(argv[1], argv[2], argv[3]);
 
-using namespace std;
-
-void start(int ac, char **av) {
-	TuteLAN_Client tl(ac, 2, "hola");	//para que compile
-	tl.start();
-}
-
-int main(int ac, char **av) {
-
-	try {
-		start();
+    try {
+		tc.start();
 	} catch (std::string &e) { // catch errors thrown as strings
 		cerr << e << endl;
 	} catch (const char *e) { // catch errors thrown as char*

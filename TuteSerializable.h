@@ -10,8 +10,7 @@
 enum TuteType : uint8_t { 
     ILEGAL_MOVE,
     TURN,
-    CANTE_VEINTE,
-    CANTE_CUARENTA,
+    CANTE,
     CANTE_TUTE,
     ROUND_WINNER,
     GAME_WINNER,
@@ -43,6 +42,7 @@ public:
     void to_bin();
 
     int from_bin(char * bobj);
+    uint8_t getContent() const { return content;}
 
 private:
     uint8_t content;
@@ -59,6 +59,9 @@ public:
     void to_bin();
 
     int from_bin(char * bobj);
+
+    uint8_t getSuit() const { return content;}
+    uint8_t getPlayer() const { return player;}
 
 private:
     uint8_t content;
