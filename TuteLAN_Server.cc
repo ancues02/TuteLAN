@@ -71,10 +71,10 @@ void TuteLAN_Server::update_game() {
 		distributeCards();
 
 		// Mandar cada mano a su jugador
-		for(int i=0; i< MAX_CLIENTS; ++i){
-			socket.send(handClients[i], *clients[i].get());
-		}
-
+		// for(int i=0; i< MAX_CLIENTS; ++i){
+		// 	socket.send(handClients[i], *clients[i].get());
+		// }
+		sleep(100000);
 		mano %= MAX_CLIENTS;
 		turn = (mano + 1) % MAX_CLIENTS;
 
@@ -186,12 +186,15 @@ void TuteLAN_Server::update_game() {
 //crea la baraja
 void TuteLAN_Server::createDesk(){
 
+	int suit=0;
 	for (int i = 0; i < 40 ; ++i){
-		desk.push_back(Card(i, i%10));
+		desk.push_back(Card(i%10, suit));
+		if(i%10==0)
+		suit++;
 	}
 	
 	//TODO que el nick sea el correcto xd
-	for(int i=0; i< MAX_CLIENTS; ++i){
+	for(uint8_t i=0; i< MAX_CLIENTS; ++i){
 		handClients.push_back(Hand(std::vector<Card>(), i, "Player"+i));
 	}
 }
@@ -210,10 +213,16 @@ void TuteLAN_Server::distributeCards()
 	}	
 	pinta = desk[39].getSuit();
 
-	for(int i = 0; i<clients.size(); ++i){		
+	/*for(int i = 0; i<clients.size(); ++i){		
 		socket.send(handClients[i], *clients[i].get());		
-	}
+	}*/
 	
+	char prueba [4000];
+	for(int i = 0; i<clients.size(); ++i){
+		handClients[i].to_bin();	
+		
+		handClients[i].from_bin(prueba);		
+	}	
 }
 
 // Comprueba si el cliente puede poner la carta

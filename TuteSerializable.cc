@@ -1,5 +1,7 @@
 #include "TuteSerializable.h"
-
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
 TuteMSG::TuteMSG(): TuteBase(0), content(-1) {
 } 
@@ -88,6 +90,7 @@ Card::Card( uint8_t number_, uint8_t suit_): TuteBase(TuteType::CARD), suit(suit
 
 void Card::to_bin()
 {
+    std::cout << "\nSerializar Carta\n";
     alloc_data(CARD_SIZE);
 
     memset(_data, 0, CARD_SIZE);
@@ -97,12 +100,15 @@ void Card::to_bin()
 
     memcpy(tmp, &type, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
+    std::cout << "type: "<< (int)type << "\n";
 
     memcpy(tmp, &suit, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
+    std::cout << "suit: "<< (int)suit << "\n";
 
     memcpy(tmp, &number, sizeof(uint8_t));
     tmp += sizeof(uint8_t);  
+    std::cout << "number: "<< (int)number << "\n";
 
     //memcpy(tmp, &client_ID, sizeof(uint8_t));
 
@@ -110,6 +116,8 @@ void Card::to_bin()
 
 int Card::from_bin(char * bobj)
 {
+    std::cout << "\nDeserializar Carta\n";
+
     alloc_data(CARD_SIZE);
 
     memcpy(static_cast<void *>(_data), bobj, CARD_SIZE);
@@ -118,12 +126,15 @@ int Card::from_bin(char * bobj)
 
     memcpy(&type,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
+    std::cout << "type: "<< (int)type << "\n";
 
     memcpy(&suit,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
+    std::cout << "suit: "<< (int)suit << "\n";
 
     memcpy(&number,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);     
+    std::cout << "number: "<< (int)number << "\n";
 
     //memcpy(&client_ID,tmp, sizeof(uint8_t));
 
@@ -139,6 +150,8 @@ Hand::Hand(const std::vector<Card> &hand_, uint8_t client_ID_,const std::string 
 //serializar la mano
 void Hand::to_bin()
 {
+        std::cout << "\nSerializar Hand\n";
+
     alloc_data(HAND_SIZE);
 
     memset(_data, 0, HAND_SIZE);
@@ -148,23 +161,30 @@ void Hand::to_bin()
 
     memcpy(tmp, &type, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
-
+    std::cout << "type: "<< (int)type << "\n";
     memcpy(tmp, &client_ID, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
+    std::cout << "client_ID: "<< (int)client_ID << "\n";
+
 
     memcpy(tmp, nick.c_str(), 8 * sizeof(char));
     tmp += 8 * sizeof(char);
+    std::cout << "nick: "<< nick << "\n";
+
 
     for(int i=0; i< hand.size();++i){
         hand[i].to_bin();
         memcpy(tmp, hand[i].data(), hand[i].size());
         tmp +=  hand[i].size();
+        
     }
 }
 
 //deserializar la mano
 int Hand::from_bin(char * bobj)
 {
+    std::cout << "\nDeserializar Hand\n";
+
     alloc_data(HAND_SIZE);
 
     memcpy(static_cast<void *>(_data), bobj, HAND_SIZE);
@@ -173,13 +193,16 @@ int Hand::from_bin(char * bobj)
         
     memcpy(&type,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
+    std::cout << "type: "<< (int)type << "\n";
 
     memcpy(&client_ID,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
+    std::cout << "client_ID: "<< (int)client_ID << "\n";
 
     tmp[7 * sizeof(char)] = '\0';//capamos el nombre a 8 letras
     nick=tmp;
     tmp += 8 * sizeof(char);
+    std::cout << "nick: "<< nick << "\n";
 
     //las cartas
     for(int i=0; i< hand.size();++i){

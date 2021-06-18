@@ -21,7 +21,7 @@ public:
 	void update_game();
 
 private:
-	const uint8_t MAX_CLIENTS = 4;
+	const uint8_t MAX_CLIENTS = 1;
 	const uint8_t POINTS_TO_WIN = 5;
 	const std::map<uint8_t, std::pair<uint8_t, int>> CARD_VALUES = {
 		{ 1,{10, 11}},

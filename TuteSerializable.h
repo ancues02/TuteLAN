@@ -8,6 +8,7 @@
 #include "Serializable.h"
 
 enum TuteType : uint8_t { 
+    PRUEBA,
     ILEGAL_MOVE,
     TURN,
     CANTE,
@@ -23,8 +24,8 @@ public:
     TuteBase(uint8_t _type) : type(_type){}
     virtual ~TuteBase(){}
 
-    void to_bin(){};
-    int from_bin(char * bobj){return 0;};
+    virtual void to_bin(){};
+    virtual int from_bin(char * bobj){return 0;};
 
     uint8_t getType() {return type;}
 protected:
@@ -39,9 +40,9 @@ public:
     TuteMSG( uint8_t _type, uint8_t _cnt);
     virtual ~TuteMSG(){}
 
-    void to_bin();
+    void to_bin() override;
 
-    int from_bin(char * bobj);
+    int from_bin(char * bobj) override;
     uint8_t getContent() const { return content;}
 
 private:
@@ -56,9 +57,9 @@ public:
     TuteCante( uint8_t _type, uint8_t _cnt, uint8_t _player);
     virtual ~TuteCante(){}
 
-    void to_bin();
+    void to_bin() override;
 
-    int from_bin(char * bobj);
+    int from_bin(char * bobj) override;
 
     uint8_t getSuit() const { return content;}
     uint8_t getPlayer() const { return player;}
@@ -79,9 +80,9 @@ public:
     Card(  uint8_t number, uint8_t suit);
     virtual ~Card(){}
 
-    void to_bin();
+    void to_bin() override;
 
-    int from_bin(char * bobj);
+    int from_bin(char * bobj) override;
     
     uint8_t getSuit() const { return suit;}
     uint8_t getNumber() const { return number;}
@@ -103,9 +104,9 @@ public:
     Hand(const std::vector<Card> &hand_, uint8_t client_ID_,const std::string &nick_);
     virtual ~Hand(){}
 
-    void to_bin();
+    void to_bin() override;
 
-    int from_bin(char * bobj);  
+    int from_bin(char * bobj) override;  
 
     std::vector<Card> &getHand(){ return hand;}      
     uint8_t getClient_ID(){ return client_ID;}

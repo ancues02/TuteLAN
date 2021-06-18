@@ -110,6 +110,10 @@ void TuteLAN_Client::recv_thread()
         if(socket.recv(received) < 0) continue;
 		switch (received.getType())
 		{
+			case TuteType::PRUEBA:{
+				std::cout << "Esta mal\n";
+				break;
+			}
 		case TuteType::HAND:
 		{
 			std::cout << "El cliente: "<< client_ID <<" recibe mano\n";
