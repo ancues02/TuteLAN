@@ -28,11 +28,11 @@ public:
     }                       
 
     template<typename T>
-    T* getComponent(ecs::CmpIdType id) {
+    T* getComponent(ecs::CmpId id) {
         return static_cast<T*>(componentsArray_[id]);
     }
 
-	bool hasComponent(ecs::CmpIdType id);
+	bool hasComponent(ecs::CmpId id);
 
 	// void update() {
 	// 	for (auto &c : components_) {

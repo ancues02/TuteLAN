@@ -2,11 +2,8 @@
 #include <ctime>
 
 namespace ecs {
-    enum CmpId : std::size_t {
-        Transform = 0,
-        CardData,
-        CardRender,
-        HandData,
+    enum CmpId : std::size_t {        
+        HandComponent=0,
         HandRender,
         GameManager,
         

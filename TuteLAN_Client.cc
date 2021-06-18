@@ -4,6 +4,7 @@
 #include "InputHandler.h"
 #include "SDL_macros.h"
 
+
 /*
  * Clase para el cliente del juego
  */
@@ -19,12 +20,20 @@ TuteLAN_Client::~TuteLAN_Client() {
 
 void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
-	//entityManager_ = new EntityManager(game_);
+	entityManager_ = new EntityManager(game_);
+	player = entityManager_->addEntity();
+	playerLeft = entityManager_->addEntity();
+	playerPartner = entityManager_->addEntity();
+	playerRight = entityManager_->addEntity();
+
+
+	player->addComponent<HandComponent>();
+	
 }
 
 void TuteLAN_Client::closeGame() {
     delete game_;
-	//delete entityManager_;
+	delete entityManager_;
 }
 
 int TuteLAN_Client::connectToServer(const char * addr, const char * port){
@@ -72,7 +81,7 @@ void TuteLAN_Client::render() {
 	SDL_RenderClear(game_->getRenderer());		
 
 	// render entities
-	//entityManager_->render();
+	entityManager_->render();
 
 	SDL_RenderPresent(game_->getRenderer());
 
@@ -94,12 +103,62 @@ void TuteLAN_Client::handleInput() {
 
 void TuteLAN_Client::recv_thread()
 {
-    TuteMSG msg;
+    TuteBase received;
     while(true)
     {
         //Recibir Mensajes de red
-        if(socket.recv(msg) < 0) continue;
+        if(socket.recv(received) < 0) continue;
+		switch (received.getType())
+		{
+		case TuteType::HAND:
+		{
+			std::cout << "El cliente: "<< client_ID <<" recibe mano\n";
+			Hand& handMsg = static_cast<Hand&>(received);
+			hand = handMsg.getHand();
+			client_ID=handMsg.getClient_ID();
+			nick = handMsg.getNick();
+			// auto it = player->getComponent<HandComponent>(ecs::HandComponent);//->setHand(handMsg.getHand());
+			// it->setHand(hand);
+			break;
+		}
+		case TuteType::ILEGAL_MOVE:
+		{
 
-        //std::cout << msg.nick << ": " << msg.message << '\n';
+			std::cout << "Eres un tramposo! Movimiento ilegal\n";
+			break;
+		}
+		case TuteType::TURN:
+		{
+			TuteMSG& _turn = static_cast<TuteMSG&>(received);
+			turn= _turn.getContent();
+			std::cout << "Es el turno de: "<<turn;
+		}
+		case TuteType::CARD:
+		{
+			Card& card = static_cast<Card&>(received);
+			if(turn == client_ID)//si es mi turno ha sido la carta que he usado
+			{
+				int i=0;
+				while(i<hand.size()){
+					if(hand[i] == card)
+						hand[i]=hand[hand.size()-1];
+						hand.pop_back();
+					++i;
+				}
+			}
+			break;
+		}
+		case TuteType::CANTE:
+		{
+			
+			break;
+		}
+
+		case TuteType::CANTE_TUTE:
+		{
+			
+			break;
+		}
+		}
     }
 }

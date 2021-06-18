@@ -12,7 +12,7 @@ EntityManager* Entity::getEntityMngr() {
 
 
 
-bool Entity::hasComponent(ecs::CmpIdType id) {
+bool Entity::hasComponent(ecs::CmpId id) {
     return componentsArray_[id] != nullptr;
 }
 

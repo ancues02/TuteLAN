@@ -4,6 +4,8 @@
 # Unignore .cc and .h
 !*.h
 !*.cc
+!*.png
+
 # Unignore Makefile
 !Makefile
 

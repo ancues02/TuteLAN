@@ -108,7 +108,7 @@ void TuteLAN_Server::update_game() {
 						// Quitamos la carta del jugador que la puso
 						int i = 0;
 						while(i < handClients[turn].getHand().size()){ 
-							if(handClients[turn].getHand()[i] == card){	// hacer comparator
+							if(handClients[turn].getHand()[i] == card){	
 								handClients[turn].getHand()[i] = handClients[turn].getHand()[handClients[turn].getHand().size() - 1];
 								handClients[turn].getHand().pop_back();
 								break;

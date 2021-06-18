@@ -36,6 +36,10 @@ public:
 		return renderer_;
 	}
 
+	inline SDL_TexturesManager* getTextureMngr() const {
+		return textures_;
+	}
+
 	inline int getWindowWidth() const {
 		return width_;
 	}

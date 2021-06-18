@@ -3,5 +3,5 @@
 
 std::vector<Resources::ImageInfo> Resources::images_ {
 //
-		{ Deck, "resources/deck.png" }, //
+		{ Deck, "Resources/Deck.png" }, //
 };
