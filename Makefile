@@ -1,7 +1,7 @@
 #OBJS specifies which files to compile as part of the project
-DEPS = SDLGame.h InputHandler.h Vector2.h Texture.h TL_Socket.h TuteSerializable.h TuteLAN_Client.h TuteLAN_Server.h
+DEPS = Resources.h SDL_TexturesManager.h SDLGame.h InputHandler.h Vector2.h Texture.h TL_Socket.h TuteSerializable.h TuteLAN_Client.h TuteLAN_Server.h
 
-OBJ = SDLGame.o InputHandler.o Vector2.o Texture.o TL_Socket.o TuteSerializable.o TuteLAN_Client.o TuteLAN_Server.o
+OBJ = Resources.o SDL_TexturesManager.o SDLGame.o InputHandler.o Vector2.o Texture.o TL_Socket.o TuteSerializable.o TuteLAN_Client.o TuteLAN_Server.o
 
 #CC specifies which compiler we're using
 CC = g++ -std=c++11

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+//#include "EntityManager.h"
 #include "SDLGame.h"
 
 #include "TL_Socket.h"
@@ -24,6 +25,8 @@ private:
 	void handleInput();
 
 	SDLGame *game_;
+	//EntityManager* entityManager_;
+
 	bool exit_;
 
 	uint8_t client_ID;	// podemos deducir el equipo de aqui

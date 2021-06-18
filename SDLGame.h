@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include "Resources.h"
+#include "SDL_TexturesManager.h"
 
 #include <string>
 #include <memory>
@@ -60,10 +62,12 @@ private:
 
 	void initSDL(); // initialize SDL
 	void closeSDL(); // close SDL
-	//void initResources(); // initialize the SDLResources object with the data at the top of this file
-	//void closeResources(); // close the SDLResources object (frees all memory)
+	void initResources(); // initialize the SDLResources object with the data at the top of this file
+	void closeResources(); // close the SDLResources object (frees all memory)
 
 protected:
+
+	SDL_TexturesManager *textures_;
 
 	SDL_Window *window_; // the window
 	SDL_Renderer *renderer_;  // the renderer

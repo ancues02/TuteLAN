@@ -19,10 +19,12 @@ TuteLAN_Client::~TuteLAN_Client() {
 
 void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
+	//entityManager_ = new EntityManager(game_);
 }
 
 void TuteLAN_Client::closeGame() {
     delete game_;
+	//delete entityManager_;
 }
 
 int TuteLAN_Client::connectToServer(const char * addr, const char * port){
@@ -68,6 +70,9 @@ void TuteLAN_Client::render() {
 	Uint32 startTime = game_->getTime();
 	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0xFF0000FF));
 	SDL_RenderClear(game_->getRenderer());		
+
+	// render entities
+	//entityManager_->render();
 
 	SDL_RenderPresent(game_->getRenderer());
 

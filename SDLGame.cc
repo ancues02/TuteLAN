@@ -8,11 +8,11 @@ SDLGame* SDLGame::instance_ = nullptr;
 SDLGame::SDLGame(string windowTitle, int width, int height) :
 		windowTitle_(windowTitle), width_(width), height_(height) {
 	initSDL();
-	//initResources();
+	initResources();
 }
 
 SDLGame::~SDLGame() {
-	//closeResources();
+	closeResources();
 	closeSDL();
 }
 
@@ -45,6 +45,15 @@ void SDLGame::initSDL() {
 
 }
 
+void SDLGame::initResources() {
+	textures_ = new SDL_TexturesManager();
+	textures_->init();
+
+	for (auto &image : Resources::images_) {
+		textures_->loadFromImg(image.id, renderer_, image.fileName);
+	}
+}
+
 void SDLGame::closeSDL() {
 
 	SDL_DestroyRenderer(renderer_);
@@ -56,6 +65,7 @@ void SDLGame::closeSDL() {
 	SDL_Quit();
 }
 
-// void SDLGame::closeResources() {
-// }
+void SDLGame::closeResources() {
+	delete textures_;
+}
 
