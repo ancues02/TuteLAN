@@ -233,9 +233,9 @@ std::cout<<"--------------------------------------------------------------------
 	sleep(1);
 	for(int i = 0; i<clients.size(); ++i){
 		for(int j = 0; j < 10; j++){		
-			sleep(1);
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
 			clients[i].get()->send(msg);
+			sleep(1);
 		}		
 	}
 	msg = TuteMSG(player_nicks[0],TuteType::LOGIN, 0, 0);

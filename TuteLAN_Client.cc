@@ -106,7 +106,7 @@ void TuteLAN_Client::renderGame(){
 	int center_offset = 80;
 	for(int i = 0; i < roundCards.size(); i++){
 		rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
-		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
+		clip = RECT(CARD_WIDTH * roundCards[i].number, CARD_HEIGHT * roundCards[i].suit, 67, 102 );
 		texture->render(rect,0, clip);
 	}
 
@@ -192,10 +192,15 @@ void TuteLAN_Client::handleInput() {
 void TuteLAN_Client::playCard(InputHandler* ih){
 	if(turn != client_ID) return;
 
-	if(ih->isKeyUp(SDLK_0) && hand.size() > 0){//jugar la carta en la posicion 0
-		TuteMSG msg(nick, TuteType::CARD, hand[0].number, hand[0].suit);
-		std::cout<<"Has usado la carta " << (int)hand[0].number<< " de "<< (int)hand[0].suit << "\n";
-		socket.send(msg);		
+	if(ih->isKeyUp(SDLK_0) ){//jugar la carta en la posicion 0
+		if(hand.size() <= 1){
+			std::cout<<"No tienes cartas suficientes, prueba a pulsar un numero menor\n";
+		}
+		else{
+			TuteMSG msg(nick, TuteType::CARD, hand[0].number, hand[0].suit);
+			std::cout<<"Has usado la carta " << (int)hand[0].number<< " de "<< (int)hand[0].suit << "\n";
+			socket.send(msg);	
+		}	
 	}
 	else if(ih->isKeyDown(SDLK_1)){//jugar la carta en la posicion 1
 		if(hand.size() <= 1){
@@ -317,7 +322,8 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::TURN:{
 			turn = received.getInfo_1();
 			std::cout << "TURN: Es el turno de: "<< (int)turn << "\n";
-			roundCards.clear();
+			if(roundCards.size()>=4)
+				roundCards.clear();
 			break;
 		}
 		case TuteType::HAND:
@@ -335,21 +341,21 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::CARD:
 		{
 			Card card ={ received.getInfo_1(), received.getInfo_2() };
-			std::cout << "Quitar la carta usada\n";
 			if(turn == client_ID)//si es mi turno ha sido la carta que he usado
 			{
+				std::cout << "Quitar la carta usada\n";
 				int i=0;
 				while(i<hand.size()){
 					if(hand[i] == card){
 						hand[i]=hand[hand.size()-1];
 						hand.pop_back();
+						break;
 					}
 					++i;
 				}
-			}// TO DO: si no, se pone en el centro
-			else{
-				roundCards.push_back(card);
-			}
+			}			
+			roundCards.push_back(card);
+			
 			break;
 		}
 		case TuteType::CANTE:
