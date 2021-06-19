@@ -7,7 +7,7 @@
 #include "Resources.h"
 #include "HandComponent.h"
 #include "Entity.h"
-
+#include "Texture.h"
 
 #include "TL_Socket.h"
 #include "TuteSerializable.h"
@@ -27,11 +27,13 @@ public:
 private:
 	void initGame();
 	void closeGame();
+	void renderGame();
 
 	void render();
 	void handleInput();
 
 	SDLGame *game_;
+	Texture* texture;
 	EntityManager* entityManager_;
 
 	bool exit_;
@@ -40,15 +42,19 @@ private:
 	std::string nick;		//nombre del jugador
 	std::vector<Card> hand; //las cartas que tiene
 	Entity* player; 			//yo
-	Entity* playerLeft; 		//el jugador de mi izquierda
-	Entity* playerPartner; 	//mi compañero
-	Entity* playerRight; 	//el jugador de mi derecha
+	int players[3]; 	//cartas de cada jugador
 
 	uint8_t turn;		//el turno 
 	Socket socket;		//mi socket
 
 	// TO DO: pasar el tamaño en la constructora
-	const static int _WINDOW_WIDTH_ = 640;
-	const static int _WINDOW_HEIGHT_ = 480;
+	const static int _WINDOW_WIDTH_ = 700;
+	const static int _WINDOW_HEIGHT_ = 700;
+
+	const static int CARD_YSCALE = 70;
+	const static int CARD_XSCALE = 40;
+	const static int CARD_WIDTH = 67;
+	const static int CARD_HEIGHT = 102;
+	const static int CARD_OFFSET = 20;
 
 };

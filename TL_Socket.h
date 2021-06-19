@@ -81,7 +81,7 @@ public:
      *
      *    @return 0 en caso de éxito o -1 si error (cerrar conexión)
      */
-    int recv(Serializable &obj, Socket &sock);
+    int recv(Serializable &obj);
 
     /*int recv(Serializable &obj) //Descarta los datos del otro extremo
     {
@@ -99,7 +99,7 @@ public:
      *
      *    @return 0 en caso de éxito o -1 si error
      */
-    int send(Serializable& obj, const Socket& sock);
+    int send(Serializable& obj);
 
     /**
      *  Enlaza el descriptor del socket a la dirección y puerto

@@ -2,7 +2,7 @@
 #include "SDL_macros.h"
 #include "Entity.h"
 #include "SDL2/SDL.h"
-
+#include <iostream>
 HandComponent::HandComponent():
      Component(ecs::HandComponent), hand(std::vector<Card>()), texture(nullptr)
 {
@@ -28,9 +28,10 @@ void HandComponent::render() {
     float posCard = (_WINDOW_WIDTH_ / 2 )- (_CARD_WIDTH_ * hand.size() / 2);
     for(int i=0; hand.size(); ++i){
         SDL_Rect rect;
-        rect = RECT(posCard + i*_CARD_WIDTH_,_WINDOW_HEIGHT_ - 2 * _CARD_HEIGHT_, _CARD_WIDTH_, _CARD_HEIGHT_);
+        rect = RECT(0,0, _CARD_WIDTH_, _CARD_HEIGHT_);
 
         texture->render(rect,0, { 102 * hand[i].suit, 67 * hand[i].number -1 , 67, 102 });
+        std::cout << "hey\n";
     }
 }
 

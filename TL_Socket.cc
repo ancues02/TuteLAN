@@ -33,11 +33,11 @@ Socket::Socket(const char * address, const char * port, bool passive):sd(-1)
     freeaddrinfo(res);
 }
 
-int Socket::recv(Serializable &obj, Socket  &sock)
+int Socket::recv(Serializable &obj)
 {
     char buffer[MAX_MESSAGE_SIZE];
 
-    ssize_t bytes = ::recv(sock.sd, buffer, MAX_MESSAGE_SIZE, 0);
+    ssize_t bytes = ::recv(sd, buffer, MAX_MESSAGE_SIZE, 0);
 
     if ( bytes < 0 )
     {
@@ -50,13 +50,13 @@ int Socket::recv(Serializable &obj, Socket  &sock)
     return 0;
 }
 
-int Socket::send(Serializable& obj, const Socket& sock)
+int Socket::send(Serializable& obj)
 {
     //Serializar el objeto
     obj.to_bin();
 
     //Enviar el objeto binario a sock usando el socket sd
-    if(::send(sock.sd, obj.data(), obj.size(), 0) < 0){
+    if(::send(sd, obj.data(), obj.size(), 0) < 0){
         std::cerr << strerror(errno) << '\n';
         return -1;
     }

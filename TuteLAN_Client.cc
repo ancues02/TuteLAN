@@ -21,13 +21,9 @@ TuteLAN_Client::~TuteLAN_Client() {
 void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
 	entityManager_ = new EntityManager(game_);
-	player = entityManager_->addEntity();
-	playerLeft = entityManager_->addEntity();
-	playerPartner = entityManager_->addEntity();
-	playerRight = entityManager_->addEntity();
 
+    texture = game_->getTextureMngr()->getTexture(Resources::Deck);
 
-	player->addComponent<HandComponent>();
 	
 }
 
@@ -67,11 +63,14 @@ int TuteLAN_Client::connectToServer(const char * addr, const char * port){
 
 void TuteLAN_Client::login(){
 	TuteMSG msg(nick, TuteType::LOGIN, 0, 0);
-    socket.send(msg, socket);
+    socket.send(msg);
 }
 
 void TuteLAN_Client::start() {
 
+	// for(int i=0; i < 10; ++i){
+	// 	hand.push_back({0, i});
+	// }
 	exit_ = false;
     //TO DO: mandar el nombre del login
 	while (!exit_) {
@@ -80,15 +79,49 @@ void TuteLAN_Client::start() {
 	}
 }
 
+void TuteLAN_Client::renderGame(){
+
+	// Player cards render
+	int iniCardPos = 200;
+   for(int i=0; i < hand.size(); ++i){
+		SDL_Rect rect, clip;
+		rect = RECT(iniCardPos + CARD_OFFSET * i, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
+		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
+		texture->render(rect,0, clip);
+	}
+
+	// int iniCardPos = 200;
+    // for(int i=0; i < hand.size(); ++i){
+	// 	SDL_Rect rect, clip;
+	// 	rect = RECT(iniCardPos + CARD_OFFSET * i, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
+	// 	clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
+	// 	texture->render(rect,0, clip);
+	// }
+
+	// Render other players
+	// double angle = 90;
+	// for(int i = 0; i < 3; i++){
+	// 	for(int j = 0; j < player[i]; j++){
+	// 		SDL_Rect rect, clip;
+	// 		rect = RECT(iniCardPos + CARD_OFFSET * i, _WINDOW_HEIGHT_- 80, CARD_WIDTH, CARD_HEIGHT);
+	// 		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
+	// 		texture->render(rect,0, clip);
+	// 	}
+	// }
+    //}
+}
+
+
 void TuteLAN_Client::render() {
 	//recv el estado del juego del servidor
 	//si es tu turno, actualizas input y todo
 	Uint32 startTime = game_->getTime();
-	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0xFF0000FF));
+	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0x006600FF));
 	SDL_RenderClear(game_->getRenderer());		
 
 	// render entities
-	entityManager_->render();
+	//entityManager_->render();
+	renderGame();
 
 	SDL_RenderPresent(game_->getRenderer());
 
@@ -117,7 +150,7 @@ void TuteLAN_Client::recv_thread()
         //Recibir Mensajes de red
 		std::cout << "Esperando a recibir un mensaje\n";
 
-        if(socket.recv(received,socket) < 0){ 
+        if(socket.recv(received) < 0){ 
 			std::cout <<"ALGO MAL\n";
 			continue;
 		}
@@ -141,7 +174,7 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::HAND:
 		{
 			hand.push_back({ received.getInfo_1(), received.getInfo_2()});
-			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano\n";
+			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano, nº cartas" << hand.size() << "\n";
 
 			break;
 		}
@@ -155,13 +188,13 @@ void TuteLAN_Client::recv_thread()
 			Card card ={ received.getInfo_1(), received.getInfo_2() };
 			if(turn == client_ID)//si es mi turno ha sido la carta que he usado
 			{
-				int i=0;
-				while(i<hand.size()){
-					if(hand[i] == card)
-						hand[i]=hand[hand.size()-1];
-						hand.pop_back();
-					++i;
-				}
+				// int i=0;
+				// while(i<hand.size()){
+				// 	if(hand[i] == card)
+				// 		hand[i]=hand[hand.size()-1];
+				// 		hand.pop_back();
+				// 	++i;
+				// }
 			}// TO DO: si no, se pone en el centro
 			break;
 		}
