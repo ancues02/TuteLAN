@@ -100,6 +100,7 @@ void Card::to_bin()
 
     memcpy(tmp, &type, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
+    uint8_t aux;
     std::cout << "type: "<< (int)type << "\n";
 
     memcpy(tmp, &suit, sizeof(uint8_t));
@@ -118,19 +119,17 @@ int Card::from_bin(char * bobj)
 {
     std::cout << "\nDeserializar Carta\n";
 
-    alloc_data(CARD_SIZE);
+    char* tmp = bobj;
 
-    memcpy(static_cast<void *>(_data), bobj, CARD_SIZE);
-
-    char* tmp = _data;
-
-    memcpy(&type,tmp, sizeof(uint8_t));
-    tmp+=sizeof(uint8_t);
+    memcpy(&type, tmp, sizeof(uint8_t));
+    tmp += sizeof(uint8_t);
     std::cout << "type: "<< (int)type << "\n";
 
     memcpy(&suit,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
     std::cout << "suit: "<< (int)suit << "\n";
+
+
 
     memcpy(&number,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);     
@@ -185,11 +184,7 @@ int Hand::from_bin(char * bobj)
 {
     std::cout << "\nDeserializar Hand\n";
 
-    alloc_data(HAND_SIZE);
-
-    memcpy(static_cast<void *>(_data), bobj, HAND_SIZE);
-
-    char* tmp = _data;
+    char* tmp = bobj;
         
     memcpy(&type,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
@@ -205,6 +200,7 @@ int Hand::from_bin(char * bobj)
     std::cout << "nick: "<< nick << "\n";
 
     //las cartas
+    std::cout <<"Tam hand "<<hand.size();
     for(int i=0; i< hand.size();++i){
         hand[i].from_bin(tmp);       
         tmp +=  hand[i].size();

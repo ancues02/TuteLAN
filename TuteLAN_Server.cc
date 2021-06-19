@@ -25,7 +25,6 @@ void TuteLAN_Server::init_game() {
 		return ;
 	}
     
-
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
@@ -78,7 +77,7 @@ void TuteLAN_Server::update_game() {
 		mano %= MAX_CLIENTS;
 		turn = (mano + 1) % MAX_CLIENTS;
 
-		TuteBase received;
+		TuteBase* received;
 		TuteMSG msg;
 		Socket* client;
 		
@@ -95,15 +94,15 @@ void TuteLAN_Server::update_game() {
 				// for(auto it = clients.begin(); it != clients.end() ; ++it){			                    
 				// }
 				
-				if(socket.recv(received, client) < 0){
+				if(socket.recv(*received, *client) < 0){
 					std::cout << "SERVER: Error recibiendo mensaje\n";
 					continue;
 				}
-				switch (received.getType())
+				switch (received->getType())
 				{
 				case TuteType::CARD:
 				{
-					Card& card = static_cast<Card&>(received);
+					Card& card = static_cast<Card&>(*received);
 					if(legalCard(card)){
 						// Quitamos la carta del jugador que la puso
 						int i = 0;
@@ -139,7 +138,7 @@ void TuteLAN_Server::update_game() {
 
 				case TuteType::CANTE:
 				{
-					TuteCante& cante = static_cast<TuteCante&>(received);
+					TuteCante& cante = static_cast<TuteCante&>(*received);
 					int points = 20;
 					// el contenido en estos mensajes es el ID del jugador
 					if(legalCante(cante)){
@@ -160,7 +159,7 @@ void TuteLAN_Server::update_game() {
 
 				case TuteType::CANTE_TUTE:
 				{
-					TuteMSG& cante = static_cast<TuteMSG&>(received);
+					TuteMSG& cante = static_cast<TuteMSG&>(*received);
 					if(legalCanteTute(cante)){
 						if(turn % 2 == 0){}
 							// team1 wins
@@ -186,13 +185,15 @@ void TuteLAN_Server::update_game() {
 //crea la baraja
 void TuteLAN_Server::createDesk(){
 
-	int suit=0;
+	int suit=-1;
 	for (int i = 0; i < 40 ; ++i){
-		desk.push_back(Card(i%10, suit));
 		if(i%10==0)
-		suit++;
+			suit++;
+		desk.push_back(Card(i%10, suit));
 	}
+
 	
+
 	//TODO que el nick sea el correcto xd
 	for(uint8_t i=0; i< MAX_CLIENTS; ++i){
 		handClients.push_back(Hand(std::vector<Card>(), i, "Player"+i));
@@ -202,27 +203,33 @@ void TuteLAN_Server::createDesk(){
 // Barajar y repartir cartas
 void TuteLAN_Server::distributeCards()
 {
-	std::random_shuffle(desk.begin(), desk.end());
+	//std::random_shuffle(desk.begin(), desk.end());
 
+	
+	int player=mano;
 
-	int player=turn;
-
-	for (int i = 0; i < 40 ; ++i){
+	for (int i = 0; i < 10 ; ++i){
 		handClients[player%MAX_CLIENTS].getHand().push_back(desk[i]);
 		player++;		
 	}	
 	pinta = desk[39].getSuit();
+/*
+std::cout<<"----------------------------------------------------------------------\n";
+	handClients[0].to_bin();
+	handClients[0].from_bin(handClients[0].data());
+std::cout<<"----------------------------------------------------------------------\n";*/
 
-	/*for(int i = 0; i<clients.size(); ++i){		
+	for(int i = 0; i<clients.size(); ++i){		
 		socket.send(handClients[i], *clients[i].get());		
-	}*/
+	}
 	
-	char prueba [4000];
-	for(int i = 0; i<clients.size(); ++i){
-		handClients[i].to_bin();	
-		
-		handClients[i].from_bin(prueba);		
-	}	
+	
+	
+
+	/*for(int i = 0; i<10; ++i){
+		handClients[0].getHand()[i].to_bin();
+		handClients[0].getHand()[i].from_bin(handClients[0].getHand()[i].data());		
+	}*/
 }
 
 // Comprueba si el cliente puede poner la carta

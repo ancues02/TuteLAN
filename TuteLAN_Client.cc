@@ -103,21 +103,22 @@ void TuteLAN_Client::handleInput() {
 
 void TuteLAN_Client::recv_thread()
 {
-    TuteBase received;
+    TuteBase* received = nullptr;
     while(true)
     {
         //Recibir Mensajes de red
-        if(socket.recv(received) < 0) continue;
-		switch (received.getType())
+        if(socket.recv(*received,socket) < 0) continue;
+		std::cout <<"Mensaje recibido\n";
+		switch (received->getType())
 		{
-			case TuteType::PRUEBA:{
-				std::cout << "Esta mal\n";
-				break;
-			}
+		case TuteType::PRUEBA:{
+			std::cout << "Esta mal\n";
+			break;
+		}
 		case TuteType::HAND:
 		{
 			std::cout << "El cliente: "<< client_ID <<" recibe mano\n";
-			Hand& handMsg = static_cast<Hand&>(received);
+			Hand& handMsg = static_cast<Hand&>(*received);
 			hand = handMsg.getHand();
 			client_ID=handMsg.getClient_ID();
 			nick = handMsg.getNick();
@@ -133,13 +134,13 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::TURN:
 		{
-			TuteMSG& _turn = static_cast<TuteMSG&>(received);
+			TuteMSG& _turn = static_cast<TuteMSG&>(*received);
 			turn= _turn.getContent();
 			std::cout << "Es el turno de: "<<turn;
 		}
 		case TuteType::CARD:
 		{
-			Card& card = static_cast<Card&>(received);
+			Card& card = static_cast<Card&>(*received);
 			if(turn == client_ID)//si es mi turno ha sido la carta que he usado
 			{
 				int i=0;

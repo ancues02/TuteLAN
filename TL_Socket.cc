@@ -33,28 +33,21 @@ Socket::Socket(const char * address, const char * port, bool passive):sd(-1)
     freeaddrinfo(res);
 }
 
-int Socket::recv(Serializable &obj, Socket * &sock)
+int Socket::recv(Serializable &obj, Socket  &sock)
 {
-    struct sockaddr sa;
-    socklen_t sa_len = sizeof(struct sockaddr);
-
     char buffer[MAX_MESSAGE_SIZE];
 
-    ssize_t bytes = ::recv(sd, buffer, MAX_MESSAGE_SIZE, 0);
+    ssize_t bytes = ::recv(sock.sd, buffer, MAX_MESSAGE_SIZE, 0);
 
-    if ( bytes <= 0 )
+    if ( bytes < 0 )
     {
+        std::cerr << strerror(errno) << '\n';
         return -1;
     }
 
-    if ( sock != 0 )
-    {
-        sock = new Socket(-1, &sa, sa_len);
-    }
-
     obj.from_bin(buffer);
-    
-    return 0;
+
+    return bytes;
 }
 
 int Socket::send(Serializable& obj, const Socket& sock)
