@@ -19,7 +19,6 @@ void TuteLAN_Server::init_game() {
 	std::cout << "Servidor iniciado y esperando " << MAX_CLIENTS << " clientes\n";
 	int players=0;
     Socket* client;
-    TuteMSG msg;
 
 	if(socket.listen(MAX_CLIENTS) == -1){
 		std::cerr << "[listen]: uso de listen\n";
@@ -39,24 +38,30 @@ void TuteLAN_Server::init_game() {
             continue;
         }   
         getnameinfo(&cliente, longCliente, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICSERV || NI_NUMERICHOST);
+		std::cout << "Conexion desde " << host << " " << serv << "\n"; 
         
-        //ThreadTCP* miThread=new ThreadTCP(cliente_socket);
-        //std::thread([miThread](){ miThread->do_message(); delete miThread;}).detach();
+        
 		client=new Socket(cliente_socket,&cliente,longCliente);
 		clients.push_back(std::move(std::unique_ptr<Socket>(client)));
-		if(socket.recv(msg, *client) < 0){
+    	TuteMSG msg1;
+		if(socket.recv(msg1, *client) < 0){
 			std::cout << "SERVER: Error recibiendo mensaje\n";
 			delete client;
 			clients.pop_back();
 		}
 		else {
-			player_nicks[players] = msg.getNick();
+			player_nicks[players] = msg1.getNick();
 			
-			msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
+			//msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
+			//socket.send( msg, *clients[0].get());
+			for(int i=0; i < 4; ++i){
+				TuteMSG msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
+				client->send( msg, *client);
+			}
+			//TuteMSG msg = TuteMSG(player_nicks[players],TuteType::TURN, players, 0);
 			//socket.send( msg, *client);
-	
+
 			players++;
-			std::cout << "Conexion desde " << host << " " << serv << "\n"; 
 		}
     }
 
@@ -82,16 +87,11 @@ void TuteLAN_Server::update_game() {
 		// Comienzo de juego
 		distributeCards();
 
-		// Mandar cada mano a su jugador
-		// for(int i=0; i< MAX_CLIENTS; ++i){
-		// 	socket.send(handClients[i], *clients[i].get());
-		// }
 		sleep(100000);
 		mano %= MAX_CLIENTS;
 		turn = (mano + 1) % MAX_CLIENTS;
 
-		TuteMSG received;
-		TuteMSG msg;
+		TuteMSG msg_send;	//mensaje que enviamos
 		Socket* client;
 		
 		int roundCount = 0;
@@ -100,10 +100,11 @@ void TuteLAN_Server::update_game() {
 			int turnCount = 0;
 			// Gestion de turnos (4)
 			while(turnCount < 4){
+				TuteMSG received;	//mensaje que recibimos
 				// Broadcast del turno 
-				msg = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
+				msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
 				for(int i = 0; i < clients.size(); i++){	
-					socket.send(msg, *clients[i].get());                    
+					socket.send(msg_send, *clients[i].get());                    
 				}
 				
 				if(socket.recv(received, *client) < 0){
@@ -130,9 +131,9 @@ void TuteLAN_Server::update_game() {
 						round_cards.push_back({ card, turn });
 
 						// Mandar a todos la carta
-						msg = TuteMSG(player_nicks[turn], TuteType::CARD, card.number, card.suit);
+						msg_send = TuteMSG(player_nicks[turn], TuteType::CARD, card.number, card.suit);
 						for(int i = 0; i < clients.size(); i++){
-							socket.send( msg, *clients[i].get());
+							socket.send( msg_send, *clients[i].get());
 						}
 
 						// Aumentamos turno
@@ -143,8 +144,8 @@ void TuteLAN_Server::update_game() {
 					}
 					// Si la carta no es legal tiene que volver a elegir
 					else{
-						msg = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
-						socket.send(msg, *clients[turn].get());
+						msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
+						socket.send(msg_send, *clients[turn].get());
 					}
 					break;
 				}
@@ -153,17 +154,17 @@ void TuteLAN_Server::update_game() {
 				{
 					int points = 20;
 					// el contenido en estos mensajes es el ID del jugador
-					if(legalCante(msg)){
+					if(legalCante(msg_send)){
 						// Comprobamos si canta 40
-						if(msg.getInfo_2() == pinta)
+						if(msg_send.getInfo_2() == pinta)
 							points = 40;
 						if(turn % 2 == 0){
 							team1.gamePoints += points;
-							team1.cantes[msg.getInfo_2()] = true;		
+							team1.cantes[msg_send.getInfo_2()] = true;		
 						}				
 						else{
 							team2.gamePoints += points;		
-							team2.cantes[msg.getInfo_2()] = true;		
+							team2.cantes[msg_send.getInfo_2()] = true;		
 						}					
 					}
 					break;
@@ -171,7 +172,7 @@ void TuteLAN_Server::update_game() {
 
 				case TuteType::CANTE_TUTE:
 				{
-					if(legalCanteTute(msg)){
+					if(legalCanteTute(msg_send)){
 						if(turn % 2 == 0){}
 							// team1 wins
 						else{}
@@ -233,8 +234,11 @@ std::cout<<"--------------------------------------------------------------------
 			socket.send(msg, *clients[i].get());
 		}		
 	}
-	
-	
+	msg = TuteMSG(player_nicks[0],TuteType::LOGIN, 0, 0);
+
+	//msg = TuteMSG(player_nicks[0], TuteType::HAND, handClients[0][2].number,  handClients[0][2].suit);
+
+	socket.send(msg, *clients[0].get());
 	
 
 	/*for(int i = 0; i<10; ++i){

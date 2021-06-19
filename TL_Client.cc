@@ -12,8 +12,12 @@ int main(int argc, char **argv)
 		std::cout << "Couldn't connect to server\n";
 		return -1;
 	}
+
 	std::thread tl_thread([&tc](){ tc.recv_thread(); });
 	tl_thread.detach();
+
+	tc.login();
+
     try {
 		tc.start();
 	} catch (std::string &e) { // catch errors thrown as strings

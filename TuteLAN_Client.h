@@ -23,6 +23,7 @@ public:
     int connectToServer(const char * addr, const char * port);
 	void start();
     void recv_thread();
+	void login();
 private:
 	void initGame();
 	void closeGame();

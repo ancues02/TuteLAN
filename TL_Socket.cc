@@ -47,7 +47,7 @@ int Socket::recv(Serializable &obj, Socket  &sock)
 
     obj.from_bin(buffer);
 
-    return bytes;
+    return 0;
 }
 
 int Socket::send(Serializable& obj, const Socket& sock)

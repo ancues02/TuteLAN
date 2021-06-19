@@ -60,11 +60,16 @@ int TuteLAN_Client::connectToServer(const char * addr, const char * port){
         std::cerr << strerror(errno) << '\n';
         return -1;
     }
-	TuteMSG msg(nick, TuteType::LOGIN, 0, 0);
-    socket.send(msg, socket);
+	
 
     freeaddrinfo(serv_res);
 }
+
+void TuteLAN_Client::login(){
+	TuteMSG msg(nick, TuteType::LOGIN, 0, 0);
+    socket.send(msg, socket);
+}
+
 void TuteLAN_Client::start() {
 
 	exit_ = false;
@@ -104,12 +109,18 @@ void TuteLAN_Client::handleInput() {
 }
 
 void TuteLAN_Client::recv_thread()
-{
-    TuteMSG received;
+{	
+    //TuteMSG received;
+		TuteMSG received;
     while(true)
     {
         //Recibir Mensajes de red
-        if(socket.recv(received,socket) < 0) continue;
+		std::cout << "Esperando a recibir un mensaje\n";
+
+        if(socket.recv(received,socket) < 0){ 
+			std::cout <<"ALGO MAL\n";
+			continue;
+		}
 		std::cout <<"Mensaje recibido\n";
 		switch (received.getType())
 		{
@@ -156,15 +167,18 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::CANTE:
 		{
-			
+			std::cout << "MENSAJE RECIBIDO NO CANTE\n";
 			break;
 		}
 
 		case TuteType::CANTE_TUTE:
 		{
-			
+			std::cout << "MENSAJE RECIBIDO NO CANTE_TUTE\n";
 			break;
 		}
+		default:
+		std::cout << "MENSAJE RECIBIDO NO ESPERADO\n";
+		break;
 		}
     }
 }
