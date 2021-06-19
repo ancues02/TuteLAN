@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	std::thread tl_thread([&tc](){ tc.recv_thread(); });
-
+	tl_thread.detach();
     try {
 		tc.start();
 	} catch (std::string &e) { // catch errors thrown as strings

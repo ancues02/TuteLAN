@@ -1,5 +1,4 @@
 #include "HandComponent.h"
-#include "TuteSerializable.h"
 #include "SDL_macros.h"
 #include "Entity.h"
 #include "SDL2/SDL.h"
@@ -31,7 +30,7 @@ void HandComponent::render() {
         SDL_Rect rect;
         rect = RECT(posCard + i*_CARD_WIDTH_,_WINDOW_HEIGHT_ - 2 * _CARD_HEIGHT_, _CARD_WIDTH_, _CARD_HEIGHT_);
 
-        texture->render(rect,0, { 102 * hand[i].getSuit(), 67 * hand[i].getNumber() -1 , 67, 102 });
+        texture->render(rect,0, { 102 * hand[i].suit, 67 * hand[i].number -1 , 67, 102 });
     }
 }
 

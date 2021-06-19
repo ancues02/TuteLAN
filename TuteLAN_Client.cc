@@ -60,7 +60,9 @@ int TuteLAN_Client::connectToServer(const char * addr, const char * port){
         std::cerr << strerror(errno) << '\n';
         return -1;
     }
-    
+	TuteMSG msg(nick, TuteType::LOGIN, 0, 0);
+    socket.send(msg, socket);
+
     freeaddrinfo(serv_res);
 }
 void TuteLAN_Client::start() {
@@ -103,44 +105,43 @@ void TuteLAN_Client::handleInput() {
 
 void TuteLAN_Client::recv_thread()
 {
-    TuteBase* received = nullptr;
+    TuteMSG received;
     while(true)
     {
         //Recibir Mensajes de red
-        if(socket.recv(*received,socket) < 0) continue;
+        if(socket.recv(received,socket) < 0) continue;
 		std::cout <<"Mensaje recibido\n";
-		switch (received->getType())
+		switch (received.getType())
 		{
 		case TuteType::PRUEBA:{
 			std::cout << "Esta mal\n";
 			break;
 		}
+		case TuteType::LOGIN:{
+			client_ID = received.getInfo_1();
+			std::cout << "LOGIN: el id es: " << (int)client_ID << "\n";
+			break;
+		}
+		case TuteType::TURN:{
+			turn = received.getInfo_1();
+			std::cout << "TURN: Es el turno de: "<< turn << "\n";
+			break;
+		}
 		case TuteType::HAND:
 		{
-			std::cout << "El cliente: "<< client_ID <<" recibe mano\n";
-			Hand& handMsg = static_cast<Hand&>(*received);
-			hand = handMsg.getHand();
-			client_ID=handMsg.getClient_ID();
-			nick = handMsg.getNick();
-			// auto it = player->getComponent<HandComponent>(ecs::HandComponent);//->setHand(handMsg.getHand());
-			// it->setHand(hand);
+			hand.push_back({ received.getInfo_1(), received.getInfo_2()});
+			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano\n";
+
 			break;
 		}
 		case TuteType::ILEGAL_MOVE:
 		{
-
 			std::cout << "Eres un tramposo! Movimiento ilegal\n";
 			break;
 		}
-		case TuteType::TURN:
-		{
-			TuteMSG& _turn = static_cast<TuteMSG&>(*received);
-			turn= _turn.getContent();
-			std::cout << "Es el turno de: "<<turn;
-		}
 		case TuteType::CARD:
 		{
-			Card& card = static_cast<Card&>(*received);
+			Card card ={ received.getInfo_1(), received.getInfo_2() };
 			if(turn == client_ID)//si es mi turno ha sido la carta que he usado
 			{
 				int i=0;
@@ -150,7 +151,7 @@ void TuteLAN_Client::recv_thread()
 						hand.pop_back();
 					++i;
 				}
-			}
+			}// TO DO: si no, se pone en el centro
 			break;
 		}
 		case TuteType::CANTE:

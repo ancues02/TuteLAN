@@ -8,7 +8,7 @@
 
 #include "TL_Socket.h"
 #include "TuteSerializable.h"
-
+#include "Card.h"
 class TuteLAN_Server {
 
 	enum State : uint8_t { ROUND_START, RUNNING, ROUND_OVER };
@@ -21,19 +21,20 @@ public:
 	void update_game();
 
 private:
-	const uint8_t MAX_CLIENTS = 1;
+	static const uint8_t MAX_CLIENTS = 1;
 	const uint8_t POINTS_TO_WIN = 5;
+	// TO DO: hacer array
 	const std::map<uint8_t, std::pair<uint8_t, int>> CARD_VALUES = {
-		{ 1,{10, 11}},
-		{ 2,{1, 0}},
-		{ 3,{9, 10}},
-		{ 4,{2, 0}},
-		{ 5,{3, 0}},
-		{ 6,{4, 0}},
-		{ 7,{5, 0}},
-		{ 10,{6, 2}},
-		{ 11,{7, 3}},
-		{ 12,{8, 4}}
+		{ 0,{10, 11}},
+		{ 1,{1, 0}},
+		{ 2,{9, 10}},
+		{ 3,{2, 0}},
+		{ 4,{3, 0}},
+		{ 5,{4, 0}},
+		{ 6,{5, 0}},
+		{ 7,{6, 2}},
+		{ 8,{7, 3}},
+		{ 9,{8, 4}}
 	};
 
 	// TO DO: Mover este struct
@@ -45,12 +46,12 @@ private:
 	void createDesk();
 	void distributeCards();
 	bool legalCard(const Card& card);
-	bool legalCante(const TuteCante& cante);
+	bool legalCante(const TuteMSG& cante);
 	bool legalCanteTute(const TuteMSG& cante);
 	uint8_t roundWinner();
 	void gameWinner();
 
-
+	std::string player_nicks[MAX_CLIENTS] ;
 	uint8_t turn;		// 4 turnos cada ronda
 	uint8_t mano;		// el que reparte al inicio del juego
 	uint8_t pinta; 		// el palo dominante del juego
@@ -62,7 +63,7 @@ private:
 	std::vector<Card> team1_cards;	// juego
 	std::vector<Card> team2_cards;	// juego
 
-	std::vector<Hand> handClients;//el servidor sabe de la mano de cada cliente
+	std::vector<std::vector<Card>> handClients;//el servidor sabe de la mano de cada cliente
 	//int t1_gamePoints = 0, t2_gamePoints = 0;	// los puntos de cada equipo por juego
 	Team team1, team2;
 	uint8_t team1_points=0, team2_points=0; //los puntos de cada equipo, por partida

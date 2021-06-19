@@ -11,7 +11,7 @@
 
 #include "TL_Socket.h"
 #include "TuteSerializable.h"
-
+#include "Card.h"
 
 
 class TuteLAN_Client {

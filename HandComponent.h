@@ -2,8 +2,7 @@
 
 #include "Component.h"
 #include <vector>
-
-class Card;
+#include "Card.h"
 
 class HandComponent : public Component
 {
