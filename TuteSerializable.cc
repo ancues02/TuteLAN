@@ -21,7 +21,7 @@ TuteMSG::TuteMSG(const std::string& _nick, uint8_t _type, uint8_t _i1, uint8_t _
 
 void TuteMSG::to_bin()
 {
-    std::cout << "\nSerializar: \n";
+    //std::cout << "\nSerializar: \n";
 
     alloc_data(MSG_SIZE);
 
@@ -31,18 +31,18 @@ void TuteMSG::to_bin()
 
     memcpy(tmp, &type, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
-    std::cout << "Type: "<< (int)type<<"\n";
+    //std::cout << "Type: "<< (int)type<<"\n";
 
     memcpy(tmp, &info_1, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
-    std::cout << "info1: "<< (int)info_1<<"\n";
+    //std::cout << "info1: "<< (int)info_1<<"\n";
 
     memcpy(tmp, &info_2, sizeof(uint8_t));
     tmp += sizeof(uint8_t);
-    std::cout << "info2: "<< (int)info_2<<"\n";
+   // std::cout << "info2: "<< (int)info_2<<"\n";
 
     memcpy(tmp, nick.c_str(), 8 * sizeof(char));
-    std::cout << "Nick: "<< nick<<"\n";
+    //std::cout << "Nick: "<< nick<<"\n";
 
 
 }
@@ -50,23 +50,23 @@ void TuteMSG::to_bin()
 int TuteMSG::from_bin(char * bobj)
 {
     char* tmp = bobj;
-    std::cout << "\nDeserializar: \n";
+    //std::cout << "\nDeserializar: \n";
 
     memcpy(&type,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
-    std::cout << "type: "<< (int)type<<"\n";
+   // std::cout << "type: "<< (int)type<<"\n";
 
     memcpy(&info_1,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
-    std::cout << "info1: "<< (int)info_1<<"\n";
+   // std::cout << "info1: "<< (int)info_1<<"\n";
 
     memcpy(&info_2,tmp, sizeof(uint8_t));
     tmp+=sizeof(uint8_t);
-    std::cout << "info2: "<< (int)info_2<<"\n";
+   // std::cout << "info2: "<< (int)info_2<<"\n";
 
     tmp[7 * sizeof(char)] = '\0';
     nick = tmp;
-    std::cout << "nick: "<< nick<<"\n";
+   // std::cout << "nick: "<< nick<<"\n";
 
     return 0;
 }

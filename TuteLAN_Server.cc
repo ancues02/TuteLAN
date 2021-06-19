@@ -117,6 +117,7 @@ void TuteLAN_Server::update_game() {
 				{
 					Card card = { received.getInfo_1(), received.getInfo_2()};
 					if(legalCard(card)){
+						std::cout<<"Han jugado la carta "<< (int)card.number << " de " << (int)card.suit<<"\n";
 						// Quitamos la carta del jugador que la puso
 						int i = 0;
 						while(i < handClients[turn].size()){ 
@@ -133,6 +134,7 @@ void TuteLAN_Server::update_game() {
 						// Mandar a todos la carta
 						msg_send = TuteMSG(player_nicks[turn], TuteType::CARD, card.number, card.suit);
 						for(int i = 0; i < clients.size(); i++){
+							std::cout <<"\nMandar carta\n";
 							clients[i].get()->send( msg_send);
 						}
 
@@ -230,9 +232,9 @@ std::cout<<"--------------------------------------------------------------------
 	TuteMSG msg;
 	for(int i = 0; i<clients.size(); ++i){
 		for(int j = 0; j < 10; j++){		
+			sleep(1);
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
 			clients[i].get()->send(msg);
-			sleep(1);
 		}		
 	}
 	msg = TuteMSG(player_nicks[0],TuteType::LOGIN, 0, 0);

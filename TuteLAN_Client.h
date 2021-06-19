@@ -13,7 +13,7 @@
 #include "TuteSerializable.h"
 #include "Card.h"
 
-
+class InputHandler;
 class TuteLAN_Client {
 
 public:
@@ -31,11 +31,12 @@ private:
 
 	void render();
 	void handleInput();
-
+	void playCard(InputHandler* ih);
 	SDLGame *game_;
 	Texture* texture;
 	EntityManager* entityManager_;
-
+	
+	std::string input;
 	bool exit_;
 
 	uint8_t client_ID;		// podemos deducir el equipo de aqui
