@@ -42,6 +42,7 @@ private:
 	uint8_t client_ID;		// podemos deducir el equipo de aqui
 	std::string nick;		//nombre del jugador
 	std::vector<Card> hand; //las cartas que tiene
+	std::vector<Card> roundCards;
 	Entity* player; 			//yo
 	int players[3]; 	//cartas de cada jugador
 

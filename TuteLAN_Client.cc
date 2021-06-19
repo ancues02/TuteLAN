@@ -83,20 +83,32 @@ void TuteLAN_Client::renderGame(){
 
 	// Player cards render
 	int iniCardPos = 200;
-   for(int i=0; i < hand.size(); ++i){
-		SDL_Rect rect, clip;
-		rect = RECT(iniCardPos + CARD_OFFSET * i, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
+	int despl = 300;
+	SDL_Rect rect, clip;
+
+   	for(int i=0; i < hand.size(); ++i){
+		
+		rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
+		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
+		texture->render(rect,0, clip);
+
+		rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
+		clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
+		texture->render(rect,180, clip);
+
+		rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 + despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
+		texture->render(rect,90, clip);
+
+		rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 - despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
+		texture->render(rect,270, clip);
+	}
+
+	int center_offset = 80;
+	for(int i = 0; i < roundCards.size(); i++){
+		rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
 		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
 		texture->render(rect,0, clip);
 	}
-
-	// int iniCardPos = 200;
-    // for(int i=0; i < hand.size(); ++i){
-	// 	SDL_Rect rect, clip;
-	// 	rect = RECT(iniCardPos + CARD_OFFSET * i, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
-	// 	clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
-	// 	texture->render(rect,0, clip);
-	// }
 
 	// Render other players
 	// double angle = 90;
@@ -305,6 +317,7 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::TURN:{
 			turn = received.getInfo_1();
 			std::cout << "TURN: Es el turno de: "<< (int)turn << "\n";
+			roundCards.clear();
 			break;
 		}
 		case TuteType::HAND:
@@ -334,6 +347,9 @@ void TuteLAN_Client::recv_thread()
 					++i;
 				}
 			}// TO DO: si no, se pone en el centro
+			else{
+				roundCards.push_back(card);
+			}
 			break;
 		}
 		case TuteType::CANTE:
