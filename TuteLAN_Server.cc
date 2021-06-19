@@ -228,6 +228,7 @@ std::cout<<"--------------------------------------------------------------------
 	handClients[0].from_bin(handClients[0].data());
 std::cout<<"----------------------------------------------------------------------\n";*/
 	TuteMSG msg;
+	sleep(1);
 	for(int i = 0; i<clients.size(); ++i){
 		for(int j = 0; j < 10; j++){		
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
