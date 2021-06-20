@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <queue>
 #include <utility>
 #include <map>
 #include <string>
@@ -80,5 +81,6 @@ private:
 	int roundCount, turnCount;
 
 	std::vector<std::unique_ptr<Socket>> clients;
+	std::queue<uint8_t> available_IDs;
 	Socket socket;
 };

@@ -22,19 +22,23 @@ void TuteLAN_Server::init_game() {
 		std::cerr << "[listen]: uso de listen\n";
 		return ;
 	}
-    
+    for(int i = 0; i < MAX_CLIENTS; i++){
+		available_IDs.push(i);
+	}
+
+	std::cout << "IDs: " << available_IDs.size() << "\n";
 	wait_players();
 }
 
 void TuteLAN_Server::wait_players(){
 	Socket* client;
-	int players= clients.size();
+	//int players;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
     struct sockaddr cliente;
     socklen_t longCliente=sizeof(sockaddr);
-    while(players<MAX_CLIENTS){
+    while(clients.size() < MAX_CLIENTS){
         int cliente_socket=socket.accept(&cliente, &longCliente);
 
         if(cliente_socket==-1){
@@ -42,11 +46,13 @@ void TuteLAN_Server::wait_players(){
             continue;
         }   
         getnameinfo(&cliente, longCliente, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICSERV || NI_NUMERICHOST);
-		std::cout << "Conexion desde " << host << " " << serv << "\n"; 
+		std::cout << "Conexion desde " << host << " " << serv << " Nplayers : " << clients.size() << "\n"; 
         
         
 		client=new Socket(cliente_socket,&cliente,longCliente);
 		clients.push_back(std::move(std::unique_ptr<Socket>(client)));
+
+		std::cout << "Pusheado socket, Nclients = " << clients.size() << "\n";
     	TuteMSG msg1;
 		if(client->recv(msg1) < 0){
 			std::cout << "SERVER: Error recibiendo mensaje\n";
@@ -54,10 +60,11 @@ void TuteLAN_Server::wait_players(){
 			clients.pop_back();
 		}
 		else {
-			player_nicks[players] = msg1.getNick();			
-			TuteMSG msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
+			player_nicks[available_IDs.front()] = msg1.getNick();			
+			TuteMSG msg = TuteMSG(player_nicks[available_IDs.front()],TuteType::LOGIN, available_IDs.front(), 0);
 			client->send(msg);
-			players++;
+			//players++;
+			available_IDs.pop();
 
 			// Thread 
 			TuteLAN_Server* serv = this;
@@ -122,8 +129,9 @@ void TuteLAN_Server::update_game() {
 			//m.unlock();
 		}
 	}
-
-
+	TuteMSG msg = TuteMSG("\0", TuteType::WAIT, 0, 0);
+	broadcast_message(msg);
+	wait_players();
 	// Mandar mensaje a todos los jugadores con el equipo ganador
 	// Esperar y cerrar conexiones
 }
@@ -238,9 +246,15 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 
 	case TuteType::DISCONNECT:
 	{
-		clients[received.getInfo_1()].reset(clients[clients.size() - 1].get());	//esto creo que va
-		clients.pop_back();
+		
+		std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
+
+		clients.erase(clients.begin() + received.getInfo_1());
+
+		available_IDs.push(received.getInfo_1());
 		_exit = disconnection = true;
+
+		std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
 
 		break;
 	}

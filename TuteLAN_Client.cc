@@ -155,7 +155,8 @@ void TuteLAN_Client::handleInput() {
 		if (ih->isKeyDown(SDLK_ESCAPE)) {
 			exit_ = true;	
 			TuteMSG msg(nick, TuteType::DISCONNECT, client_ID, 0);
-			socket.send(msg);		
+			socket.send(msg);	
+			std::cout << "ME voy\n";	
 		}
 		
 		else if(!in_game_) return;
@@ -409,6 +410,11 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::WAIT:
 		{
 			in_game_ = false;
+			hand.clear();
+			roundCards.clear();
+			for(int i = 0; i < 3; i++){
+				players[i] = 0;
+			}
 			break;
 		}
 		default:
