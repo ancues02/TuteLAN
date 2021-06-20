@@ -50,17 +50,9 @@ void TuteLAN_Server::init_game() {
 			clients.pop_back();
 		}
 		else {
-			player_nicks[players] = msg1.getNick();
-			
-			//msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
-			//socket.send( msg, *clients[0].get());
-			for(int i=0; i < 4; ++i){
-				TuteMSG msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
-				client->send(msg);
-			}
-			//TuteMSG msg = TuteMSG(player_nicks[players],TuteType::TURN, players, 0);
-			//socket.send( msg, *client);
-
+			player_nicks[players] = msg1.getNick();			
+			TuteMSG msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
+			client->send(msg);
 			players++;
 		}
     }
@@ -100,13 +92,15 @@ void TuteLAN_Server::update_game() {
 			int turnCount = 0;
 			// Gestion de turnos (4)
 			while(turnCount < 4){
+				sleep(1);
 				TuteMSG received;	//mensaje que recibimos
 				// Broadcast del turno 
 				msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
 				for(int i = 0; i < clients.size(); i++){	
-					clients[i].get()->send(msg_send);                    
+					clients[i].get()->send(msg_send);
+					std::cout << "mandar turno: " << turn << "\n";                    
 				}
-				
+				sleep(1);
 				if(clients[turn]->recv(received) < 0){
 					std::cout << "SERVER: Error recibiendo mensaje\n";
 					continue;
@@ -204,6 +198,7 @@ void TuteLAN_Server::createDesk(){
 		if(i%10==0)
 			suit++;
 		desk.push_back( { i%10, suit });
+		std::cout << (int)desk[i].number<<"  "  << (int)desk[i].suit<< "\n";
 	}
 
 	for(uint8_t i=0; i< MAX_CLIENTS; ++i){
@@ -214,6 +209,7 @@ void TuteLAN_Server::createDesk(){
 // Barajar y repartir cartas
 void TuteLAN_Server::distributeCards()
 {
+	//TO DO descomentar esto
 	//std::random_shuffle(desk.begin(), desk.end());
 
 	
@@ -224,31 +220,17 @@ void TuteLAN_Server::distributeCards()
 		player++;		
 	}	
 	pinta = desk[39].suit;
-/*
-std::cout<<"----------------------------------------------------------------------\n";
-	handClients[0].to_bin();
-	handClients[0].from_bin(handClients[0].data());
-std::cout<<"----------------------------------------------------------------------\n";*/
+
 	TuteMSG msg;
 	sleep(1);
-	for(int i = 0; i<clients.size(); ++i){
-		for(int j = 0; j < 10; j++){		
+	for(int j = 0; j < 10; j++){		
+		for(int i = 0; i<clients.size(); ++i){
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
 			clients[i].get()->send(msg);
-			sleep(1);
-		}		
+		}	
+		sleep(1);	
 	}
-	msg = TuteMSG(player_nicks[0],TuteType::LOGIN, 0, 0);
-
-	//msg = TuteMSG(player_nicks[0], TuteType::HAND, handClients[0][2].number,  handClients[0][2].suit);
-
-	//socket.send(msg, *clients[0].get());
 	
-
-	/*for(int i = 0; i<10; ++i){
-		handClients[0].getHand()[i].to_bin();
-		handClients[0].getHand()[i].from_bin(handClients[0].getHand()[i].data());		
-	}*/
 }
 
 // Comprueba si el cliente puede poner la carta

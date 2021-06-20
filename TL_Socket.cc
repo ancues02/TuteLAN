@@ -2,6 +2,7 @@
 
 #include "Serializable.h"
 #include "TL_Socket.h"
+#include <unistd.h>
 
 Socket::Socket(const char * address, const char * port, bool passive):sd(-1)
 {
@@ -60,6 +61,8 @@ int Socket::send(Serializable& obj)
         std::cerr << strerror(errno) << '\n';
         return -1;
     }
+    // sleep(1);
+
     return 0;
 }
 

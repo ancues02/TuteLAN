@@ -192,8 +192,8 @@ void TuteLAN_Client::handleInput() {
 void TuteLAN_Client::playCard(InputHandler* ih){
 	if(turn != client_ID) return;
 
-	if(ih->isKeyUp(SDLK_0) ){//jugar la carta en la posicion 0
-		if(hand.size() <= 1){
+	if(ih->isKeyDown(SDLK_t)){//jugar la carta en la posicion 0
+		if(hand.size() <= 0){
 			std::cout<<"No tienes cartas suficientes, prueba a pulsar un numero menor\n";
 		}
 		else{
@@ -343,7 +343,7 @@ void TuteLAN_Client::recv_thread()
 			Card card ={ received.getInfo_1(), received.getInfo_2() };
 			if(turn == client_ID)//si es mi turno ha sido la carta que he usado
 			{
-				std::cout << "Quitar la carta usada\n";
+				std::cout << "Quitar la carta usada: "<< (int)card.number<<" "<<(int)card.suit <<"\n";
 				int i=0;
 				while(i<hand.size()){
 					if(hand[i] == card){
@@ -360,7 +360,7 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::CANTE:
 		{
-			std::cout << "MENSAJE RECIBIDO NO CANTE\n";
+			std::cout << "MENSAJE RECIBIDO NO CANTE\n"; 
 			break;
 		}
 
