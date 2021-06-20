@@ -5,7 +5,7 @@
 
 TuteMSG::TuteMSG(): 
     nick("Default"), 
-    type(TuteType::PRUEBA), 
+    type(TuteType::LOGIN), 
     info_1(0), 
     info_2(0) 
 {

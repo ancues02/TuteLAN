@@ -50,7 +50,7 @@ void TuteLAN_Server::wait_players(){
         
         
 		client=new Socket(cliente_socket,&cliente,longCliente);
-		clients.push_back(std::move(std::unique_ptr<Socket>(client)));
+		clients.push_back({ std::move(std::unique_ptr<Socket>(client)), available_IDs.front() } );
 
 		std::cout << "Pusheado socket, Nclients = " << clients.size() << "\n";
     	TuteMSG msg1;
@@ -139,7 +139,7 @@ void TuteLAN_Server::update_game() {
 void TuteLAN_Server::broadcast_message(TuteMSG& msg){
 	std::cout << "Broadcast de: " << (int)msg.getType() << "\n";             
 	for(int i = 0; i < clients.size(); i++){	
-		clients[i].get()->send(msg);		       
+		clients[i].first.get()->send(msg);		       
 	}
 	sleep(1);
 }
@@ -192,7 +192,7 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 		// Si la carta no es legal tiene que volver a elegir
 		else{
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
-			clients[turn].get()->send(msg_send);
+			clients[turn].first.get()->send(msg_send);
 		}
 		break;
 	}
@@ -222,7 +222,7 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 		}
 		else{
 			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::ILEGAL_MOVE, 0,0);
-			clients[received.getInfo_1()].get()->send(msg_send);
+			clients[received.getInfo_1()].first.get()->send(msg_send);
 		}
 		break;
 	}
@@ -249,12 +249,20 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 		
 		std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
 
-		clients.erase(clients.begin() + received.getInfo_1());
+		auto it = clients.begin();
+		while (it != clients.end() && it->second != received.getInfo_1())
+		{
+			++it;
+		}
 
-		available_IDs.push(received.getInfo_1());
-		_exit = disconnection = true;
+		if(it !=  clients.end()){
+			clients.erase(it);
 
-		std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
+			available_IDs.push(received.getInfo_1());
+			_exit = disconnection = true;
+
+			std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
+		}
 
 		break;
 	}
@@ -280,6 +288,7 @@ void TuteLAN_Server::createDesk(){
 // Barajar y repartir cartas
 void TuteLAN_Server::distributeCards()
 {
+	srand(time(NULL));
 	std::random_shuffle(desk.begin(), desk.end());
 
 	//empieza repartiendo al jugador de la derecha del que reparte
@@ -292,17 +301,18 @@ void TuteLAN_Server::distributeCards()
 	//la pinta es la ultima	
 	pinta = desk[39].suit;
 
-	//mandar mensaje de todas las cartas a cada jugador
 	TuteMSG msg;
+	msg =TuteMSG("", TuteType::PINTA, desk[39].number, desk[39].suit);
+	broadcast_message(msg);
 	sleep(1);
 	for(int j = 0; j < 10; j++){		
 		for(int i = 0; i<clients.size(); ++i){
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
-			clients[i].get()->send(msg);
+			clients[i].first.get()->send(msg);
 		}	
 		sleep(1);	
 	}
-	
+
 }
 
 // Comprueba si el cliente puede poner la carta

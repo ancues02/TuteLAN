@@ -80,7 +80,7 @@ private:
 
 	int roundCount, turnCount;
 
-	std::vector<std::unique_ptr<Socket>> clients;
+	std::vector<std::pair<std::unique_ptr<Socket>, uint8_t>> clients;	//socket e ID
 	std::queue<uint8_t> available_IDs;
 	Socket socket;
 };

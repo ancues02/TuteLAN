@@ -9,7 +9,6 @@
 #include "Serializable.h"
 
 enum TuteType : uint8_t { 
-    PRUEBA,
     LOGIN,
     ILEGAL_MOVE,
     TURN,

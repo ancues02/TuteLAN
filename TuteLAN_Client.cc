@@ -22,8 +22,8 @@ void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
 
     texture = game_->getTextureMngr()->getTexture(Resources::Deck);
-
-	
+	pinta = 4;
+	pinta_num = 1;
 }
 
 void TuteLAN_Client::closeGame() {
@@ -90,18 +90,18 @@ void TuteLAN_Client::renderGame(){
 		SDL_Rect rect, clip;
 
 		for(int i=0; i < hand.size(); ++i){
-			
+			// Jugador
 			rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
 			texture->render(rect,0, clip);
-
+			// Jugador arriba
 			rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
 			texture->render(rect,180, clip);
-
+			// Jugador derecha
 			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 + despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
 			texture->render(rect,90, clip);
-
+			// Jugador izquierda
 			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 - despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
 			texture->render(rect,270, clip);
 		}
@@ -111,20 +111,16 @@ void TuteLAN_Client::renderGame(){
 			rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH * roundCards[i].number, CARD_HEIGHT * roundCards[i].suit, 67, 102 );
 			texture->render(rect,0, clip);
-		}
+		}	
+		
+	
 	}
 
-	// Render other players
-	// double angle = 90;
-	// for(int i = 0; i < 3; i++){
-	// 	for(int j = 0; j < player[i]; j++){
-	// 		SDL_Rect rect, clip;
-	// 		rect = RECT(iniCardPos + CARD_OFFSET * i, _WINDOW_HEIGHT_- 80, CARD_WIDTH, CARD_HEIGHT);
-	// 		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
-	// 		texture->render(rect,0, clip);
-	// 	}
-	// }
-    //}
+	// Render pinta
+	SDL_Rect rect = RECT(_WINDOW_WIDTH_ - CARD_WIDTH - CARD_WIDTH / 4, CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
+	SDL_Rect clip = RECT(CARD_WIDTH * pinta_num, CARD_HEIGHT * pinta, 67, 102 );
+	texture->render(rect,0, clip);
+	
 }
 
 
@@ -326,10 +322,6 @@ void TuteLAN_Client::recv_thread()
 		std::cout <<"Mensaje recibido\n";
 		switch (received.getType())
 		{
-		case TuteType::PRUEBA:{
-			std::cout << "Esta mal\n";
-			break;
-		}
 		case TuteType::LOGIN:{
 			client_ID = received.getInfo_1();
 			std::cout << "LOGIN: el id es: " << (int)client_ID << "\n";
@@ -359,7 +351,8 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::PINTA:
 		{
 			pinta=received.getInfo_1();
-			std::cout << "La pinta es: " << pinta << "\n";
+			pinta_num = received.getInfo_2();
+			std::cout << "La pinta es: " << (int)pinta << " "<< (int)pinta_num << "\n";
 			break;
 		}
 		case TuteType::CARD:
@@ -418,8 +411,8 @@ void TuteLAN_Client::recv_thread()
 			break;
 		}
 		default:
-		std::cout << "MENSAJE RECIBIDO NO ESPERADO\n";
-		break;
+			std::cout << "MENSAJE RECIBIDO NO ESPERADO\n";
+			break;
 		}
     }
 }
