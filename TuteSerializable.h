@@ -13,6 +13,7 @@ enum TuteType : uint8_t {
     LOGIN,
     ILEGAL_MOVE,
     TURN,
+    PINTA,
     CANTE,
     CANTE_TUTE,
     ROUND_WINNER,
@@ -23,8 +24,10 @@ enum TuteType : uint8_t {
 
 /*
  * 
-*  LOGIN / para el server          nick
-           para el cliente          player ID
+ *  LOGIN / para el server          nick
+ *          para el cliente         player ID
+ *          
+ *  PINTA       info_1 = pinta
  * 
  *  TURN        info_1 = playerTurn
  * 

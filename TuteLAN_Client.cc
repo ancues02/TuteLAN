@@ -155,26 +155,31 @@ void TuteLAN_Client::handleInput() {
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 0);
     			socket.send(msg);
 				input="\0";
+				std::cout << "Cantar en oros\n";
 			}
 			else if(ih->isKeyDown(SDLK_c) ){//rey y caballo de copas
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 1);
     			socket.send(msg);
 				input="\0";
+				std::cout << "Cantar en copas\n";
 			}
 			else if(ih->isKeyDown(SDLK_e) ){//rey y caballo de espadas
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 2);
     			socket.send(msg);
 				input="\0";
+				std::cout << "Cantar en espadas\n";
 			}
 			else if(ih->isKeyDown(SDLK_b) ){//rey y caballo de bastos  
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 3);
     			socket.send(msg);
 				input="\0";
+				std::cout << "Cantar en bastos\n";
 			}
 			else if(ih->isKeyDown(SDLK_t) ){//tute, 4 reyes o 4 caballos
 				TuteMSG msg(nick, TuteType::CANTE_TUTE, client_ID, 0);
     			socket.send(msg);
 				input="\0";
+				std::cout << "Cantar en tute\n";
 			}
 			else if(ih->isKeyDown(SDLK_q)){//si pulsas otra tecla, deja de intentar cantar
 				input="\0";
@@ -333,6 +338,12 @@ void TuteLAN_Client::recv_thread()
 			std::cout << "Eres un tramposo! Movimiento ilegal\n";
 			break;
 		}
+		case TuteType::PINTA:
+		{
+			pinta=received.getInfo_1();
+			std::cout << "La pinta es: " << pinta << "\n";
+			break;
+		}
 		case TuteType::CARD:
 		{
 			Card card ={ received.getInfo_1(), received.getInfo_2() };
@@ -355,13 +366,22 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::CANTE:
 		{
-			std::cout << "MENSAJE RECIBIDO NO CANTE\n"; 
+			//info1 es cliente e info 2 es palo
+			int points=20;
+			if(received.getInfo_2() == pinta)
+				points=40;
+			//TO DO poner mensaje de texto en pantalla
+			std::cout << "El jugador " << received.getInfo_1() << "ha cantado "<< points << "en " << received.getInfo_2() <<"\n"; 
 			break;
 		}
 
 		case TuteType::CANTE_TUTE:
 		{
-			std::cout << "MENSAJE RECIBIDO NO CANTE_TUTE\n";
+			//info1 es el jugador
+			std::cout << "El jugador " << received.getInfo_1() << "ha cantado tute, ";
+			if(received.getInfo_1() % 2 == client_ID % 2) std::cout << "tu equipo ha ganado\n";
+			else std::cout << "su equipo ha ganado\n";
+			//TO DO poner mensaje de texto en pantalla
 			break;
 		}
 		default:

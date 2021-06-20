@@ -88,7 +88,7 @@ void TuteLAN_Server::update_game() {
 		
 		int roundCount = 0;
 		//Gestion de rondas (10)
-		while(roundCount < 10){
+		while(roundCount < 10 && team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){
 			int turnCount = 0;
 			// Gestion de turnos (4)
 			while(turnCount < 4){
@@ -148,6 +148,8 @@ void TuteLAN_Server::update_game() {
 
 				case TuteType::CANTE:
 				{
+					std::cout << "intentan cantar\n";                    
+
 					int points = 20;
 					// el contenido en estos mensajes es el ID del jugador
 					if(legalCante(msg_send)){
@@ -156,12 +158,23 @@ void TuteLAN_Server::update_game() {
 							points = 40;
 						if(turn % 2 == 0){
 							team1.gamePoints += points;
-							team1.cantes[msg_send.getInfo_2()] = true;		
+							team1.cantes[msg_send.getInfo_2()] = true;									
 						}				
 						else{
 							team2.gamePoints += points;		
 							team2.cantes[msg_send.getInfo_2()] = true;		
-						}					
+						}
+						//mandar mensaje a todos de quien ha cantado y en que palo
+						msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE, msg_send.getInfo_1(), msg_send.getInfo_2());								
+						for(int i = 0; i < clients.size(); i++){	
+							clients[i].get()->send(msg_send);
+							std::cout << "ha cantado el cliente: " << msg_send.getInfo_1() << " en el palo"  << msg_send.getInfo_2()<< "\n";                    
+						}
+											
+					}
+					else{
+						msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
+						clients[turn].get()->send(msg_send);
 					}
 					break;
 				}
@@ -169,10 +182,19 @@ void TuteLAN_Server::update_game() {
 				case TuteType::CANTE_TUTE:
 				{
 					if(legalCanteTute(msg_send)){
-						if(turn % 2 == 0){}
-							// team1 wins
-						else{}
-							// team2 wins
+						// team1 wins
+						if(turn % 2 == 0){
+							team1_points = POINTS_TO_WIN;
+						}
+						else// team2 wins
+						{
+							team2_points = POINTS_TO_WIN;
+						}
+						msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE_TUTE, msg_send.getInfo_1() % 2, msg_send.getInfo_2());								
+						for(int i = 0; i < clients.size(); i++){	
+							clients[i].get()->send(msg_send);
+							std::cout << "ha cantado tute el cliente: " << msg_send.getInfo_1() << "\n";                    
+						}
 					}
 					break;
 				}
@@ -211,15 +233,17 @@ void TuteLAN_Server::distributeCards()
 {
 	std::random_shuffle(desk.begin(), desk.end());
 
-	
+	//empieza repartiendo al jugador de la derecha del que reparte
 	int player=mano;
 
 	for (int i = 0; i < 10 * MAX_CLIENTS ; ++i){
 		handClients[player%MAX_CLIENTS].push_back(desk[i]);
 		player++;		
-	}	
+	}
+	//la pinta es la ultima	
 	pinta = desk[39].suit;
 
+	//mandar mensaje de todas las cartas a cada jugador
 	TuteMSG msg;
 	sleep(1);
 	for(int j = 0; j < 10; j++){		
@@ -233,15 +257,20 @@ void TuteLAN_Server::distributeCards()
 }
 
 // Comprueba si el cliente puede poner la carta
+// primero que se usa la carta del palo de la ronda, luego la pinta y luego cualquier otra
 bool TuteLAN_Server::legalCard(const Card& card)
 {
+	//si es la primera carta en la mesa, esa es el palo de la ronda
 	if(round_cards.empty()) {
 		roundSuit = card.suit;
 		return true;
 	}
+
+	//si se juega del palo de la ronda bien
 	if(card.suit == roundSuit)
 		return true;
-	
+
+	//si se juega de la pinta, comprobar que el jugador no tiene cartas del palo de la ronda
 	if(card.suit == pinta){
 		for(int i = 0; i < handClients[turn].size(); i++){
 			if(handClients[turn][i].suit == roundSuit)
@@ -249,15 +278,18 @@ bool TuteLAN_Server::legalCard(const Card& card)
 		}
 		return true;
 	}
-	else {
-		for(int i = 0; i < handClients[turn].size(); i++){
-			if(handClients[turn][i].suit == roundSuit || handClients[turn][i].suit == pinta)
-				return false;
-		}
+	
+	//sino comprobar que no tiene ni pinta ni carta del palo de la ronda	
+	for(int i = 0; i < handClients[turn].size(); i++){
+		if(handClients[turn][i].suit == roundSuit || handClients[turn][i].suit == pinta)
+			return false;
 	}
+	
 	return true;
 }
 
+//Analizar si es legal el cante
+//el mensaje de cante el info1 es la id del cliente y el info2 el palo
 bool TuteLAN_Server::legalCante(const TuteMSG& _cante)
 {
 	Team t;
@@ -281,7 +313,7 @@ bool TuteLAN_Server::legalCante(const TuteMSG& _cante)
 	return puedeCantar == 2;
 }
 //
-// En el mensaje de cante de tute, el contenido es el ID del jugador
+// En el mensaje de cante de tute, el info1 es el ID del jugador
 bool TuteLAN_Server::legalCanteTute(const TuteMSG& _cante)
 {
 	if(round_cards.empty() || turn % 2 != _cante.getInfo_1() % 2) {
