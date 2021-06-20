@@ -5,6 +5,7 @@
 !*.h
 !*.cc
 !*.png
+!*.ttf
 
 # Unignore Makefile
 !Makefile
