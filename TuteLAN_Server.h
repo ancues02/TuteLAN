@@ -27,7 +27,7 @@ public:
 	void handle_message(TuteMSG& received, bool& _exit);
 private:
 	static const uint8_t MAX_CLIENTS = 4;
-	const uint8_t POINTS_TO_WIN = 5;
+	const uint8_t POINTS_TO_WIN = 1;
 	// TO DO: hacer array
 	const std::map<uint8_t, std::pair<uint8_t, int>> CARD_VALUES = {
 		{ 0,{10, 11}},
@@ -58,6 +58,7 @@ private:
 	bool legalCanteTute(const TuteMSG& cante);
 	uint8_t roundWinner();
 	void gameWinner();
+	void endGame();
 
 	std::mutex m;
 	bool disconnection;

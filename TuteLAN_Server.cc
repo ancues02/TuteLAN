@@ -12,7 +12,6 @@ TuteLAN_Server::~TuteLAN_Server() {
 
 void TuteLAN_Server::init_game() {
 	/*
-	 *	
 	 * 	Espera a que se connecten los 4 jugadores y entonces
 	 * 	lanza el juego
 	 */
@@ -106,36 +105,53 @@ void TuteLAN_Server::update_game() {
 	team2 = Team();
 	roundCount = turnCount = 0;
 
-	while(!disconnection){	// o termina una partida ?
-		if(team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){
-			// Principo de juego
-			distributeCards();
-			mano %= MAX_CLIENTS;
-			turn = (mano + 1) % MAX_CLIENTS;
+	while(!disconnection && team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){	// o termina una partida ?
+		
+		// Principo de juego
+		distributeCards();
+		mano %= MAX_CLIENTS;
+		turn = (mano + 1) % MAX_CLIENTS;
 
-			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
-			broadcast_message(msg_send);
+		TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
+		broadcast_message(msg_send);
 
-			while(roundCount < 10 && !disconnection){
-				int no = 0;
-			}	// wait ( signal de algun thread )
-			//m.lock();
-			if(!disconnection) {
-				gameWinner();
-				mano++;
-				roundCount = 0;
-			}
-
-			//m.unlock();
+		while(roundCount < 10 && !disconnection){
+			int no = 0;
+		}	// wait ( signal de algun thread )
+		//m.lock();
+		if(!disconnection) {
+			gameWinner();
+			mano++;
+			roundCount = 0;
 		}
+
+		//m.unlock();
+		//team1_points=6;
+		
 	}
-	TuteMSG msg = TuteMSG("\0", TuteType::WAIT, 0, 0);
-	broadcast_message(msg);
-	wait_players();
+	if(disconnection){
+		TuteMSG msg = TuteMSG("\0", TuteType::WAIT, 0, 0);
+		broadcast_message(msg);
+		wait_players();
+	}
+	else{
+		endGame();
+	}
 	// Mandar mensaje a todos los jugadores con el equipo ganador
 	// Esperar y cerrar conexiones
 }
+void TuteLAN_Server::endGame(){
+	int winner=0;
+	if(team1_points < team2_points)
+		winner=1;
+	TuteMSG msg = TuteMSG("\0", TuteType::TUTE_WINNER, winner, 0);
+	broadcast_message(msg);
+	while(clients.size() > 0){
+		//esperar :D
+	}
+	wait_players();
 
+}
 void TuteLAN_Server::broadcast_message(TuteMSG& msg){
 	std::cout << "Broadcast de: " << (int)msg.getType() << "\n";             
 	for(int i = 0; i < clients.size(); i++){	
@@ -349,13 +365,13 @@ bool TuteLAN_Server::legalCard(const Card& card)
 //el mensaje de cante el info1 es la id del cliente y el info2 el palo
 bool TuteLAN_Server::legalCante(const TuteMSG& _cante)
 {
-	Team t;
+	Team* t;
 	if(_cante.getInfo_1() % 2 == 0)
-		t = team1;
+		t = &team1;
 	else
-		t = team2;
+		t = &team2;
 
-	if(round_cards.empty() || turn % 2 != _cante.getInfo_1() % 2 || t.cantes[_cante.getInfo_2()]) 
+	if(!round_cards.empty() || turn % 2 != _cante.getInfo_1() % 2 || t->cantes[_cante.getInfo_2()]) 
 		return false;
 	
 	auto playerHand = handClients[_cante.getInfo_1()];
@@ -391,6 +407,7 @@ bool TuteLAN_Server::legalCanteTute(const TuteMSG& _cante)
 	return (nReyes == 4 || nCaballos == 4);
 }
 
+//ver quien ha ganado la ronda y sumar los puntos de juego
 uint8_t TuteLAN_Server::roundWinner()
 {
 	Card winCard = round_cards[0].first;
@@ -420,6 +437,12 @@ uint8_t TuteLAN_Server::roundWinner()
 
 void TuteLAN_Server::gameWinner()
 {
+	//las 10 de ultimas
+	if(turn%2 == 0)
+		team1.gamePoints += 10;
+	else 
+		team2.gamePoints +=10;
+	//comprobar quien ha ganado el juego
 	uint8_t addedPoints = 1;
 	if(team1.gamePoints  > 100 || team2.gamePoints > 100)
 		addedPoints = 2;
@@ -435,6 +458,10 @@ void TuteLAN_Server::gameWinner()
 		else
 			team2_points += addedPoints;
 	}
+	TuteMSG msg("ganador", TuteType::GAME_WINNER,turn%2,addedPoints);
+	broadcast_message(msg);
+
+	
 }
 
 

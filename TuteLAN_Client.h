@@ -33,7 +33,8 @@ private:
 	void handleInput();
 	void playCard(InputHandler* ih);
 	
-	SDLGame *game_;
+
+	SDLGame* game_;
 	Texture* texture;
 	Texture* turnTexture;
 
@@ -43,6 +44,7 @@ private:
 	std::string input;
 	bool exit_;
 	bool in_game_;
+	bool endGame=false;
 
 	uint8_t client_ID;		// podemos deducir el equipo de aqui
 	std::string nick;		//nombre del jugador

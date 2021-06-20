@@ -27,7 +27,7 @@ void TuteLAN_Client::initGame() {
 	pinta_num = 1;
 	turn=0;
 	myTeamPoints = otherTeamPoints = 0;
-	tmpTxt = "Hola que tal";
+	tmpTxt = "Hola " + nick;
 	tmp_limit = game_->getTime() + 4000;
 }
 
@@ -151,6 +151,7 @@ void TuteLAN_Client::renderPoints(){
 }
 
 void TuteLAN_Client::renderTempTxt(){
+	
 	int remTime = tmp_limit - game_->getTime();
 	if(remTime > 0){
 		Texture score (	game_->getRenderer(), 
@@ -159,6 +160,11 @@ void TuteLAN_Client::renderTempTxt(){
 						{ COLOR(0x992211ff) });
 		score.render( _WINDOW_WIDTH_ / 2 - score.getWidth() / 2,_WINDOW_HEIGHT_ / 2 + score.getHeight());
 	}
+	else if(endGame){
+		exit_=true;
+	}
+	
+
 }
 
 
@@ -345,6 +351,7 @@ void TuteLAN_Client::playCard(InputHandler* ih){
 	}
 }
 
+
 void TuteLAN_Client::recv_thread()
 {	
 	TuteMSG received;
@@ -363,6 +370,8 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::LOGIN:{
 			client_ID = received.getInfo_1();
 			std::cout << "LOGIN: el id es: " << (int)client_ID << "\n";
+			tmpTxt = "Hola " + nick + ", te has logeado correctamente";
+			tmp_limit = game_->getTime() + 4000;
 			break;
 		}
 		case TuteType::TURN:{
@@ -374,7 +383,8 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::HAND:
 		{
-			// To Do: hacer mensaje
+			
+			tmp_limit = game_->getTime()+1;
 			in_game_ = true;
 			hand.push_back({ received.getInfo_1(), received.getInfo_2()});
 			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano, nº cartas" << hand.size() << "\n";
@@ -384,6 +394,8 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::ILEGAL_MOVE:
 		{
 			std::cout << "Eres un tramposo! Movimiento ilegal\n";
+			tmpTxt="Eres un tramposo! Movimiento ilegal";
+			tmp_limit = game_->getTime() + 4000;
 			break;
 		}
 		case TuteType::PINTA:
@@ -391,6 +403,15 @@ void TuteLAN_Client::recv_thread()
 			pinta_num = received.getInfo_1();
 			pinta_suit = received.getInfo_2();
 			std::cout << "La pinta es: " << (int)pinta_suit << " "<< (int)pinta_num << "\n";
+			tmpTxt="La pinta es el " + std::to_string((int)pinta_num+1)+ " de ";
+			if((int)pinta_num==0)
+				tmpTxt += "oros";
+			else if((int)pinta_num==1)
+				tmpTxt += "copas";
+			else if((int)pinta_num==2)
+				tmpTxt += "espadas";
+			else if((int)pinta_num==3)
+				tmpTxt += "bastos";
 			break;
 		}
 		case TuteType::CARD:
@@ -421,6 +442,8 @@ void TuteLAN_Client::recv_thread()
 				points=40;
 			//TO DO poner mensaje de texto en pantalla
 			std::cout << "El jugador " << received.getInfo_1() << "ha cantado "<< points << "en " << received.getInfo_2() <<"\n"; 
+			tmpTxt="El jugador " + to_string(received.getInfo_1()) + " ha cantado "+ to_string(points) + " en " + std::to_string(received.getInfo_2());
+			tmp_limit = game_->getTime() + 4000;
 			break;
 		}
 
@@ -428,14 +451,32 @@ void TuteLAN_Client::recv_thread()
 		{
 			//info1 es el jugador
 			std::cout << "El jugador " << received.getInfo_1() << "ha cantado tute, ";
-			if(received.getInfo_1() % 2 == client_ID % 2) std::cout << "tu equipo ha ganado\n";
-			else std::cout << "su equipo ha ganado\n";
-			//TO DO poner mensaje de texto en pantalla
+			if(received.getInfo_1() % 2 == client_ID % 2){ 
+				std::cout << "tu equipo ha ganado\n";
+				tmpTxt="El jugador " + to_string(received.getInfo_1()) + "ha cantado tute, tu equipo ha ganado" ;
+				tmp_limit = game_->getTime() + 4000;
+			}
+			else {
+				std::cout << "su equipo ha ganado\n";
+				tmpTxt="El jugador " + to_string(received.getInfo_1()) + "ha cantado tute, su equipo ha ganado" ;
+				tmp_limit = game_->getTime() + 4000;
+			}
+			break;
+		}
+		case TuteType::GAME_WINNER:
+		{
+			if(received.getInfo_1() == client_ID % 2)
+				myTeamPoints+=received.getInfo_2();
+			else
+				otherTeamPoints+=received.getInfo_2();
+
 			break;
 		}
 		case TuteType::TUTE_WINNER:
 		{
-			exit_=true;
+			tmpTxt="Ha ganado el equipo " + to_string(received.getInfo_1());
+			tmp_limit = game_->getTime() + 5000;
+			endGame=true;
 			break;
 		}
 		case TuteType::WAIT:
@@ -453,4 +494,5 @@ void TuteLAN_Client::recv_thread()
 			break;
 		}
     }
+	
 }
