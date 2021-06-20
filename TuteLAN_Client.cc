@@ -66,7 +66,7 @@ void TuteLAN_Client::login(){
 
 void TuteLAN_Client::start() {
 
-	
+	in_game_ = false;
 	exit_ = false;
 	while (!exit_) {
 		handleInput();
@@ -76,33 +76,42 @@ void TuteLAN_Client::start() {
 
 void TuteLAN_Client::renderGame(){
 
-	// Player cards render
-	int iniCardPos = 200;
-	int despl = 300;
-	SDL_Rect rect, clip;
-
-   	for(int i=0; i < hand.size(); ++i){
-		
-		rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
-		clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
-		texture->render(rect,0, clip);
-
-		rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
-		clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
-		texture->render(rect,180, clip);
-
-		rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 + despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
-		texture->render(rect,90, clip);
-
-		rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 - despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
-		texture->render(rect,270, clip);
+	if(!in_game_){
+		Texture score (	game_->getRenderer(), 
+        				"Waiting for players...",
+            			game_->getFontMngr()->getFont(Resources::ARIAL24),
+            			{ COLOR(0x111122ff) });
+    	score.render( _WINDOW_WIDTH_ / 2 - score.getWidth() / 2, _WINDOW_HEIGHT_ / 2 - score.getHeight());
 	}
+	else {
+		// Player cards render
+		int iniCardPos = 200;
+		int despl = 300;
+		SDL_Rect rect, clip;
 
-	int center_offset = 80;
-	for(int i = 0; i < roundCards.size(); i++){
-		rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
-		clip = RECT(CARD_WIDTH * roundCards[i].number, CARD_HEIGHT * roundCards[i].suit, 67, 102 );
-		texture->render(rect,0, clip);
+		for(int i=0; i < hand.size(); ++i){
+			
+			rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
+			clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
+			texture->render(rect,0, clip);
+
+			rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
+			clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
+			texture->render(rect,180, clip);
+
+			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 + despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
+			texture->render(rect,90, clip);
+
+			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 - despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
+			texture->render(rect,270, clip);
+		}
+
+		int center_offset = 80;
+		for(int i = 0; i < roundCards.size(); i++){
+			rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
+			clip = RECT(CARD_WIDTH * roundCards[i].number, CARD_HEIGHT * roundCards[i].suit, 67, 102 );
+			texture->render(rect,0, clip);
+		}
 	}
 
 	// Render other players
@@ -138,15 +147,21 @@ void TuteLAN_Client::render() {
 }
 
 void TuteLAN_Client::handleInput() {
+
 	auto ih = InputHandler::instance();
 	
 	ih->update();
 	if (ih->keyDownEvent()) {
 		if (ih->isKeyDown(SDLK_ESCAPE)) {
-			exit_ = true;			
+			exit_ = true;	
+			TuteMSG msg(nick, TuteType::DISCONNECT, client_ID, 0);
+			socket.send(msg);		
 		}
+		
+		else if(!in_game_) return;
+
 		//aqui mandar los mensajes
-		else if(ih->isKeyDown(SDLK_c) /*&& turn%2 == client_ID*/ && input == "\0"){
+		else if(ih->isKeyDown(SDLK_c) && input == "\0"){
 			input = "c";
 			std::cout << "Si pulsas o, c, e, b cantas con ese palo\n";
 		}
@@ -297,7 +312,7 @@ void TuteLAN_Client::playCard(InputHandler* ih){
 void TuteLAN_Client::recv_thread()
 {	
     //TuteMSG received;
-		TuteMSG received;
+	TuteMSG received;
     while(true)
     {
         //Recibir Mensajes de red
@@ -328,9 +343,11 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::HAND:
 		{
+			// To Do: hacer mensaje
+			in_game_ = true;
 			hand.push_back({ received.getInfo_1(), received.getInfo_2()});
 			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano, nº cartas" << hand.size() << "\n";
-
+				
 			break;
 		}
 		case TuteType::ILEGAL_MOVE:
@@ -387,6 +404,12 @@ void TuteLAN_Client::recv_thread()
 		case TuteType::TUTE_WINNER:
 		{
 			exit_=true;
+			break;
+		}
+		case TuteType::WAIT:
+		{
+			in_game_ = false;
+			break;
 		}
 		default:
 		std::cout << "MENSAJE RECIBIDO NO ESPERADO\n";

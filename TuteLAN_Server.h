@@ -21,9 +21,9 @@ public:
 
 	void init_game();
 	void update_game();
-	void broadcast_message(TuteMSG& msg);
-	void handle_message(TuteMSG& received);
 
+	// Thread function
+	void handle_message(TuteMSG& received, bool& _exit);
 private:
 	static const uint8_t MAX_CLIENTS = 4;
 	const uint8_t POINTS_TO_WIN = 5;
@@ -41,6 +41,9 @@ private:
 		{ 9,{8, 4}}
 	};
 
+	void broadcast_message(TuteMSG& msg);
+	void disconnect_player(Socket* sock);
+	void wait_players();
 	// TO DO: Mover este struct
 	struct Team{
 		int gamePoints = 0;
@@ -56,6 +59,7 @@ private:
 	void gameWinner();
 
 	std::mutex m;
+	bool disconnection;
 	std::string player_nicks[MAX_CLIENTS];
 	uint8_t turn;		// 4 turnos cada ronda
 	uint8_t mano;		// el que reparte al inicio del juego

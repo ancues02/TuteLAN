@@ -17,14 +17,18 @@ void TuteLAN_Server::init_game() {
 	 * 	lanza el juego
 	 */
 	std::cout << "Servidor iniciado y esperando " << MAX_CLIENTS << " clientes\n";
-	int players=0;
-    Socket* client;
 
 	if(socket.listen(MAX_CLIENTS) == -1){
 		std::cerr << "[listen]: uso de listen\n";
 		return ;
 	}
     
+	wait_players();
+}
+
+void TuteLAN_Server::wait_players(){
+	Socket* client;
+	int players= clients.size();
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
@@ -54,15 +58,34 @@ void TuteLAN_Server::init_game() {
 			TuteMSG msg = TuteMSG(player_nicks[players],TuteType::LOGIN, players, 0);
 			client->send(msg);
 			players++;
+
+			// Thread 
+			TuteLAN_Server* serv = this;
+			std::thread c_th = std::thread([client, serv](){
+				bool _exit = false;
+				while(!_exit){
+					TuteMSG received;
+					if(client->recv(received) < 0){
+						std::cout << "SERVER: Error recibiendo mensaje\n";
+						continue;
+					}
+					std::cout << "SERVER: Mensaje Recibido\n";
+					
+					serv->handle_message(received, _exit);
+
+					std::cout << "SERVER: Mensaje Procesado\n";
+				}
+			});
+			c_th.detach();
 		}
     }
 
+	disconnection = false;
 	turn = 0;
 	createDesk();
     update_game();
-
-
 }
+
 
 void TuteLAN_Server::update_game() {
 	/*
@@ -74,31 +97,9 @@ void TuteLAN_Server::update_game() {
 	turn = 0;
 	team1 = Team();
 	team2 = Team();
-
-	Socket* client; 
-	TuteLAN_Server* serv = this;
-	for(int i = 0; i < clients.size(); i++){
-		client = clients[i].get();
-		std::thread c_th = std::thread([client, serv](){
-			while(true){
-				TuteMSG received;
-				if(client->recv(received) < 0){
-					std::cout << "SERVER: Error recibiendo mensaje\n";
-					continue;
-				}
-				std::cout << "SERVER: Mensaje Recibido\n";
-				serv->handle_message(received);
-				std::cout << "SERVER: Mensaje Procesado\n";
-
-			}
-		});
-		c_th.detach();
-	}
-
-		
 	roundCount = turnCount = 0;
 
-	while(clients.size() == MAX_CLIENTS){
+	while(!disconnection){	// o termina una partida ?
 		if(team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){
 			// Principo de juego
 			distributeCards();
@@ -108,18 +109,21 @@ void TuteLAN_Server::update_game() {
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
 			broadcast_message(msg_send);
 
-			while(roundCount < 10){
+			while(roundCount < 10 && !disconnection){
 				int no = 0;
 			}	// wait ( signal de algun thread )
 			//m.lock();
-
-			gameWinner();
-			mano++;
-			roundCount = 0;
+			if(!disconnection) {
+				gameWinner();
+				mano++;
+				roundCount = 0;
+			}
 
 			//m.unlock();
 		}
 	}
+
+
 	// Mandar mensaje a todos los jugadores con el equipo ganador
 	// Esperar y cerrar conexiones
 }
@@ -132,7 +136,7 @@ void TuteLAN_Server::broadcast_message(TuteMSG& msg){
 	sleep(1);
 }
 
-void TuteLAN_Server::handle_message(TuteMSG& received){
+void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 	switch (received.getType())
 	{
 	case TuteType::CARD:
@@ -229,6 +233,15 @@ void TuteLAN_Server::handle_message(TuteMSG& received){
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE_TUTE, received.getInfo_1() % 2, received.getInfo_2());								
 			broadcast_message(msg_send);
 		}
+		break;
+	}
+
+	case TuteType::DISCONNECT:
+	{
+		clients[received.getInfo_1()].reset(clients[clients.size() - 1].get());	//esto creo que va
+		clients.pop_back();
+		_exit = disconnection = true;
+
 		break;
 	}
 	}		

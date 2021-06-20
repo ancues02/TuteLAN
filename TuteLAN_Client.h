@@ -34,6 +34,7 @@ private:
 
 	std::string input;
 	bool exit_;
+	bool in_game_;
 
 	uint8_t client_ID;		// podemos deducir el equipo de aqui
 	std::string nick;		//nombre del jugador
