@@ -2,11 +2,8 @@
 #include <string>
 #include <vector>
 
-#include "EntityManager.h"
 #include "SDLGame.h"
 #include "Resources.h"
-#include "HandComponent.h"
-#include "Entity.h"
 #include "Texture.h"
 
 #include "TL_Socket.h"
@@ -34,8 +31,7 @@ private:
 	void playCard(InputHandler* ih);
 	SDLGame *game_;
 	Texture* texture;
-	EntityManager* entityManager_;
-	
+
 	std::string input;
 	bool exit_;
 
@@ -43,7 +39,6 @@ private:
 	std::string nick;		//nombre del jugador
 	std::vector<Card> hand; //las cartas que tiene
 	std::vector<Card> roundCards;
-	Entity* player; 			//yo
 	int players[3]; 	//cartas de cada jugador
 
 	uint8_t turn;		//el turno 

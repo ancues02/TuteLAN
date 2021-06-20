@@ -20,7 +20,6 @@ TuteLAN_Client::~TuteLAN_Client() {
 
 void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
-	entityManager_ = new EntityManager(game_);
 
     texture = game_->getTextureMngr()->getTexture(Resources::Deck);
 
@@ -29,7 +28,6 @@ void TuteLAN_Client::initGame() {
 
 void TuteLAN_Client::closeGame() {
     delete game_;
-	delete entityManager_;
 }
 
 int TuteLAN_Client::connectToServer(const char * addr, const char * port){
@@ -68,11 +66,8 @@ void TuteLAN_Client::login(){
 
 void TuteLAN_Client::start() {
 
-	// for(int i=0; i < 10; ++i){
-	// 	hand.push_back({0, i});
-	// }
+	
 	exit_ = false;
-    //TO DO: mandar el nombre del login
 	while (!exit_) {
 		handleInput();
 		render();

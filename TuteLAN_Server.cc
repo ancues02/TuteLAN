@@ -198,7 +198,7 @@ void TuteLAN_Server::createDesk(){
 		if(i%10==0)
 			suit++;
 		desk.push_back( { i%10, suit });
-		std::cout << (int)desk[i].number<<"  "  << (int)desk[i].suit<< "\n";
+		std::cout << (int)desk[i].number << "  "  << (int)desk[i].suit<< "\n";
 	}
 
 	for(uint8_t i=0; i< MAX_CLIENTS; ++i){
@@ -209,8 +209,7 @@ void TuteLAN_Server::createDesk(){
 // Barajar y repartir cartas
 void TuteLAN_Server::distributeCards()
 {
-	//TO DO descomentar esto
-	//std::random_shuffle(desk.begin(), desk.end());
+	std::random_shuffle(desk.begin(), desk.end());
 
 	
 	int player=mano;
