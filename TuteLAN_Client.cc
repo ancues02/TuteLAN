@@ -126,7 +126,10 @@ void TuteLAN_Client::renderGame(){
 		texture->render(rect,0, clip);
 
 		//Render turno
-		rect = RECT(_WINDOW_WIDTH_/2 + 180 * sin(((client_ID+1)%(turn+1)) * 90), _WINDOW_HEIGHT_ / 2 + 180 * cos(((client_ID+1)%(turn+1)) * 90), 50,50);
+		int turnPos = (turn - client_ID + 4) % 4;
+		//std::cout << "Seno: " <<  sin(turnPos  * 90) << "  Coseno: " <<  cos(turnPos  * 90) << "\n";
+		rect = RECT((_WINDOW_WIDTH_ / 2 - turnTexture->getWidth() / 2) + (180 * sin(turnPos * M_PI / 180 * 90)),
+					(_WINDOW_HEIGHT_ / 2  - turnTexture->getHeight() / 2)+ (180 * cos(turnPos * M_PI / 180 * 90)), 50,50);
 		turnTexture->render(rect);
 	
 	}
