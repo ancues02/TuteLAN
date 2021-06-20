@@ -11,6 +11,7 @@ public:
 	enum TextureId : std::size_t {
 		// images
 		Deck,
+		Turn,
 	};
 
 	// enum AudioId : std::size_t {

@@ -27,10 +27,18 @@ private:
 	void renderGame();
 
 	void render();
+	void renderPoints();
+	void renderTempTxt();
+
 	void handleInput();
 	void playCard(InputHandler* ih);
+	
 	SDLGame *game_;
 	Texture* texture;
+	Texture* turnTexture;
+
+	std::string tmpTxt;
+	int tmp_limit;
 
 	std::string input;
 	bool exit_;
@@ -46,6 +54,9 @@ private:
 	uint8_t pinta_num;	// numero de la pinta para renderizarla
 	uint8_t turn;		//el turno 
 	Socket socket;		//mi socket
+
+	uint8_t myTeamPoints,
+			otherTeamPoints;
 
 	// TO DO: pasar el tamaño en la constructora
 	const static int _WINDOW_WIDTH_ = 700;

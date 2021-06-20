@@ -10,4 +10,5 @@ std::vector<Resources::FontInfo> Resources::fonts_ {
 std::vector<Resources::ImageInfo> Resources::images_ {
 //
 		{ Deck, "Resources/Deck.png" }, //
+		{ Turn, "Resources/Turn.png" }, //
 };

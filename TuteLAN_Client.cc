@@ -22,8 +22,13 @@ void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
 
     texture = game_->getTextureMngr()->getTexture(Resources::Deck);
+    turnTexture = game_->getTextureMngr()->getTexture(Resources::Turn);
 	pinta_suit = 4;
 	pinta_num = 1;
+	turn=0;
+	myTeamPoints = otherTeamPoints = 0;
+	tmpTxt = "Hola que tal";
+	tmp_limit = game_->getTime() + 4000;
 }
 
 void TuteLAN_Client::closeGame() {
@@ -119,9 +124,38 @@ void TuteLAN_Client::renderGame(){
 		rect = RECT(_WINDOW_WIDTH_ - CARD_WIDTH - CARD_WIDTH / 4, CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
 		clip = RECT(CARD_WIDTH * (int)pinta_num, CARD_HEIGHT * (int)pinta_suit, 67, 102 );
 		texture->render(rect,0, clip);
+
+		//Render turno
+		rect = RECT(_WINDOW_WIDTH_/2 + 180 * sin(((client_ID+1)%(turn+1)) * 90), _WINDOW_HEIGHT_ / 2 + 180 * cos(((client_ID+1)%(turn+1)) * 90), 50,50);
+		turnTexture->render(rect);
 	
 	}
 	
+}
+void TuteLAN_Client::renderPoints(){
+	// Render de puntuacion
+	Texture score (	game_->getRenderer(), 
+					"MyTeam: " + to_string(myTeamPoints),
+					game_->getFontMngr()->getFont(Resources::ARIAL16),
+					{ COLOR(0xffffffff) });
+	score.render( _WINDOW_WIDTH_ / 12 - score.getWidth() / 2, score.getHeight());
+	Texture oscore (	game_->getRenderer(), 
+					"OtherTeam: " + to_string(otherTeamPoints),
+					game_->getFontMngr()->getFont(Resources::ARIAL16),
+					{ COLOR(0x999999ff) });
+
+	oscore.render( _WINDOW_WIDTH_ / 12 - score.getWidth() / 2, 2 * score.getHeight());
+}
+
+void TuteLAN_Client::renderTempTxt(){
+	int remTime = tmp_limit - game_->getTime();
+	if(remTime > 0){
+		Texture score (	game_->getRenderer(), 
+						tmpTxt,
+						game_->getFontMngr()->getFont(Resources::ARIAL16),
+						{ COLOR(0x992211ff) });
+		score.render( _WINDOW_WIDTH_ / 2 - score.getWidth() / 2,_WINDOW_HEIGHT_ / 2 + score.getHeight());
+	}
 }
 
 
@@ -132,9 +166,9 @@ void TuteLAN_Client::render() {
 	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0x006600FF));
 	SDL_RenderClear(game_->getRenderer());		
 
-	// render entities
-	//entityManager_->render();
 	renderGame();
+	renderPoints();
+	renderTempTxt();
 
 	SDL_RenderPresent(game_->getRenderer());
 
@@ -142,6 +176,7 @@ void TuteLAN_Client::render() {
 	if (frameTime < 10)
 		SDL_Delay(10 - frameTime);
 }
+
 
 void TuteLAN_Client::handleInput() {
 
@@ -309,7 +344,6 @@ void TuteLAN_Client::playCard(InputHandler* ih){
 
 void TuteLAN_Client::recv_thread()
 {	
-    //TuteMSG received;
 	TuteMSG received;
     while(true)
     {
