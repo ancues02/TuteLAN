@@ -74,144 +74,166 @@ void TuteLAN_Server::update_game() {
 	turn = 0;
 	team1 = Team();
 	team2 = Team();
-	// Partida
-	while(team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){
-		// Comienzo de juego
-		distributeCards();
 
-		//sleep(100000);
-		mano %= MAX_CLIENTS;
-		turn = (mano + 1) % MAX_CLIENTS;
-
-		TuteMSG msg_send;	//mensaje que enviamos
-		Socket* client;
-		
-		int roundCount = 0;
-		//Gestion de rondas (10)
-		while(roundCount < 10 && team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){
-			int turnCount = 0;
-			// Gestion de turnos (4)
-			while(turnCount < 4){
-				sleep(1);
-				TuteMSG received;	//mensaje que recibimos
-				// Broadcast del turno 
-				msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
-				for(int i = 0; i < clients.size(); i++){	
-					clients[i].get()->send(msg_send);
-					std::cout << "mandar turno: " << turn << "\n";                    
-				}
-				sleep(1);
-				if(clients[turn]->recv(received) < 0){
+	Socket* client; 
+	TuteLAN_Server* serv = this;
+	for(int i = 0; i < clients.size(); i++){
+		client = clients[i].get();
+		std::thread c_th = std::thread([client, serv](){
+			while(true){
+				TuteMSG received;
+				if(client->recv(received) < 0){
 					std::cout << "SERVER: Error recibiendo mensaje\n";
 					continue;
 				}
-				switch (received.getType())
-				{
-				case TuteType::CARD:
-				{
-					Card card = { received.getInfo_1(), received.getInfo_2()};
-					if(legalCard(card)){
-						std::cout<<"Han jugado la carta "<< (int)card.number << " de " << (int)card.suit<<"\n";
-						// Quitamos la carta del jugador que la puso
-						int i = 0;
-						while(i < handClients[turn].size()){ 
-							if(handClients[turn][i] == card){	
-								handClients[turn][i] = handClients[turn][handClients[turn].size() - 1];
-								handClients[turn].pop_back();
-								break;
-							}
-							i++; 
-						}
-						// Poner la carta en 'round_cards'
-						round_cards.push_back({ card, turn });
+				std::cout << "SERVER: Mensaje Recibido\n";
+				serv->handle_message(received);
+				std::cout << "SERVER: Mensaje Procesado\n";
 
-						// Mandar a todos la carta
-						msg_send = TuteMSG(player_nicks[turn], TuteType::CARD, card.number, card.suit);
-						for(int i = 0; i < clients.size(); i++){
-							std::cout <<"\nMandar carta\n";
-							clients[i].get()->send( msg_send);
-						}
-
-						// Aumentamos turno
-						turnCount++;
-						// Actualizamos el siguiente jugador que le toca 
-						turn = (turn + 1) % MAX_CLIENTS;
-						
-					}
-					// Si la carta no es legal tiene que volver a elegir
-					else{
-						msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
-						clients[turn].get()->send(msg_send);
-					}
-					break;
-				}
-
-				case TuteType::CANTE:
-				{
-					std::cout << "intentan cantar\n";                    
-
-					int points = 20;
-					// el contenido en estos mensajes es el ID del jugador
-					if(legalCante(received)){
-						// Comprobamos si canta 40
-						if(msg_send.getInfo_2() == pinta)
-							points = 40;
-						if(turn % 2 == 0){
-							team1.gamePoints += points;
-							team1.cantes[received.getInfo_2()] = true;									
-						}				
-						else{
-							team2.gamePoints += points;		
-							team2.cantes[received.getInfo_2()] = true;		
-						}
-						//mandar mensaje a todos de quien ha cantado y en que palo
-						msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE, msg_send.getInfo_1(), msg_send.getInfo_2());								
-						for(int i = 0; i < clients.size(); i++){	
-							clients[i].get()->send(msg_send);
-							std::cout << "ha cantado el cliente: " << msg_send.getInfo_1() << " en el palo"  << msg_send.getInfo_2()<< "\n";                    
-						}
-											
-					}
-					else{
-						msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
-						clients[turn].get()->send(msg_send);
-					}
-					break;
-				}
-
-				case TuteType::CANTE_TUTE:
-				{
-					if(legalCanteTute(received)){
-						// team1 wins
-						if(turn % 2 == 0){
-							team1_points = POINTS_TO_WIN;
-						}
-						else// team2 wins
-						{
-							team2_points = POINTS_TO_WIN;
-						}
-						msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE_TUTE, msg_send.getInfo_1() % 2, msg_send.getInfo_2());								
-						for(int i = 0; i < clients.size(); i++){	
-							clients[i].get()->send(msg_send);
-							std::cout << "ha cantado tute el cliente: " << msg_send.getInfo_1() << "\n";                    
-						}
-					}
-					break;
-				}
-				}
 			}
-			// Decidir que equipo gana la ronda
-			turn = roundWinner();
-			// Mandar mensaje a todos los jugadores
-			roundCount++;
+		});
+		c_th.detach();
+	}
+
+		
+	roundCount = turnCount = 0;
+
+	while(clients.size() == MAX_CLIENTS){
+		if(team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){
+			// Principo de juego
+			distributeCards();
+			mano %= MAX_CLIENTS;
+			turn = (mano + 1) % MAX_CLIENTS;
+
+			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
+			broadcast_message(msg_send);
+
+			while(roundCount < 10){
+				int no = 0;
+			}	// wait ( signal de algun thread )
+			//m.lock();
+
+			gameWinner();
+			mano++;
+			roundCount = 0;
+
+			//m.unlock();
 		}
-		gameWinner();
-		mano++;
 	}
 	// Mandar mensaje a todos los jugadores con el equipo ganador
 	// Esperar y cerrar conexiones
 }
 
+void TuteLAN_Server::broadcast_message(TuteMSG& msg){
+	std::cout << "Broadcast de: " << (int)msg.getType() << "\n";             
+	for(int i = 0; i < clients.size(); i++){	
+		clients[i].get()->send(msg);		       
+	}
+	sleep(1);
+}
+
+void TuteLAN_Server::handle_message(TuteMSG& received){
+	switch (received.getType())
+	{
+	case TuteType::CARD:
+	{
+		Card card = { received.getInfo_1(), received.getInfo_2()};
+		if(legalCard(card)){
+			std::cout<<"Han jugado la carta "<< (int)card.number << " de " << (int)card.suit<<"\n";
+			// Quitamos la carta del jugador que la puso
+			int i = 0;
+			while(i < handClients[turn].size()){ 
+				if(handClients[turn][i] == card){	
+					handClients[turn][i] = handClients[turn][handClients[turn].size() - 1];
+					handClients[turn].pop_back();
+					break;
+				}
+				i++; 
+			}
+			// Poner la carta en 'round_cards'
+			round_cards.push_back({ card, turn });
+
+			// Mandar a todos la carta
+			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::CARD, card.number, card.suit);
+			broadcast_message(msg_send);
+			//m.lock();
+			
+			// Aumentamos turno
+			turnCount++;
+
+			if(turnCount == 4){
+				// Decidir que equipo gana la ronda
+				turn = roundWinner();
+				roundCount++;
+				turnCount = 0;
+			}
+			else{
+				// Actualizamos el siguiente jugador que le toca 
+				turn = (turn + 1) % MAX_CLIENTS;
+			}
+
+			//m.unlock();
+
+			msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
+			broadcast_message(msg_send);				
+		}
+		// Si la carta no es legal tiene que volver a elegir
+		else{
+			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
+			clients[turn].get()->send(msg_send);
+		}
+		break;
+	}
+
+	case TuteType::CANTE:
+	{
+		std::cout << "intentan cantar\n";                    
+
+		int points = 20;
+		// el contenido en estos mensajes es el ID del jugador
+		if(legalCante(received)){
+			// Comprobamos si canta 40
+			if(received.getInfo_2() == pinta)
+				points = 40;
+			if(turn % 2 == 0){
+				team1.gamePoints += points;
+				team1.cantes[received.getInfo_2()] = true;									
+			}				
+			else{
+				team2.gamePoints += points;		
+				team2.cantes[received.getInfo_2()] = true;		
+			}
+			//mandar mensaje a todos de quien ha cantado y en que palo
+			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::CANTE, received.getInfo_1(), received.getInfo_2());								
+			broadcast_message(msg_send);
+								
+		}
+		else{
+			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::ILEGAL_MOVE, 0,0);
+			clients[received.getInfo_1()].get()->send(msg_send);
+		}
+		break;
+	}
+
+	case TuteType::CANTE_TUTE:
+	{
+		if(legalCanteTute(received)){
+			// team1 wins
+			if(turn % 2 == 0){
+				team1_points = POINTS_TO_WIN;
+			}
+			else// team2 wins
+			{
+				team2_points = POINTS_TO_WIN;
+			}
+			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE_TUTE, received.getInfo_1() % 2, received.getInfo_2());								
+			broadcast_message(msg_send);
+		}
+		break;
+	}
+	}		
+	
+}
 //crea la baraja
 void TuteLAN_Server::createDesk(){
 

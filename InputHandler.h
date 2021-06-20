@@ -2,7 +2,6 @@
 
 #include <SDL2/SDL.h>
 #include <array>
-#include "Vector2.h"
 #include <memory>
 
 using namespace std;
@@ -64,7 +63,7 @@ public:
 		return isMouseButtonEvent_;
 	}
 
-	inline const Vector2& getMousePos() {
+	inline const std::pair<float,float>& getMousePos() {
 		return mousePos_;
 	}
 
@@ -92,7 +91,7 @@ private:
 	}
 	inline void onMouseMotion(SDL_Event &event) {
 		isMouseMotionEvent_ = true;
-		mousePos_.set(event.motion.x, event.motion.y);
+		mousePos_= { event.motion.x, event.motion.y };
 	}
 	inline void onMouseButtonChange(SDL_Event &event, bool isDown) {
 		isMouseButtonEvent_ = true;
@@ -113,7 +112,7 @@ private:
 	bool isMouseMotionEvent_;
 	bool isMouseButtonEvent_;
 
-	Vector2 mousePos_;
+	std::pair<float,float> mousePos_;
 	std::array<bool, 3> mbState_;
 };
 

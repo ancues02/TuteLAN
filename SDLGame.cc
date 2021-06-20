@@ -46,8 +46,15 @@ void SDLGame::initSDL() {
 }
 
 void SDLGame::initResources() {
+	fonts_ = new SDL_FontsManager();
+	fonts_->init();
+
 	textures_ = new SDL_TexturesManager();
 	textures_->init();
+
+	for (auto &font : Resources::fonts_) {
+		fonts_->loadFont(font.id, font.fileName, font.size);
+	}
 
 	for (auto &image : Resources::images_) {
 		textures_->loadFromImg(image.id, renderer_, image.fileName);
@@ -66,6 +73,7 @@ void SDLGame::closeSDL() {
 }
 
 void SDLGame::closeResources() {
+	delete fonts_;
 	delete textures_;
 }
 
