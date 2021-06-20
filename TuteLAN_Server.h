@@ -5,6 +5,8 @@
 #include <string>
 #include <assert.h>
 #include "algorithm"
+#include <thread>
+#include <mutex>
 
 #include "TL_Socket.h"
 #include "TuteSerializable.h"
@@ -19,6 +21,8 @@ public:
 
 	void init_game();
 	void update_game();
+	void broadcast_message(TuteMSG& msg);
+	void handle_message(TuteMSG& received);
 
 private:
 	static const uint8_t MAX_CLIENTS = 4;
@@ -51,7 +55,8 @@ private:
 	uint8_t roundWinner();
 	void gameWinner();
 
-	std::string player_nicks[MAX_CLIENTS] ;
+	std::mutex m;
+	std::string player_nicks[MAX_CLIENTS];
 	uint8_t turn;		// 4 turnos cada ronda
 	uint8_t mano;		// el que reparte al inicio del juego
 	uint8_t pinta; 		// el palo dominante del juego
@@ -67,6 +72,8 @@ private:
 	//int t1_gamePoints = 0, t2_gamePoints = 0;	// los puntos de cada equipo por juego
 	Team team1, team2;
 	uint8_t team1_points=0, team2_points=0; //los puntos de cada equipo, por partida
+
+	int roundCount, turnCount;
 
 	std::vector<std::unique_ptr<Socket>> clients;
 	Socket socket;
