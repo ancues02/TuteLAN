@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include "Resources.h"
+#include "SDL_FontsManager.h"
 #include "SDL_TexturesManager.h"
 
 #include <string>
@@ -35,7 +36,9 @@ public:
 	inline SDL_Renderer* getRenderer() const {
 		return renderer_;
 	}
-
+	inline SDL_FontsManager* getFontMngr() const {
+		return fonts_;
+	}
 	inline SDL_TexturesManager* getTextureMngr() const {
 		return textures_;
 	}
@@ -71,6 +74,7 @@ private:
 
 protected:
 
+	SDL_FontsManager *fonts_;
 	SDL_TexturesManager *textures_;
 
 	SDL_Window *window_; // the window
