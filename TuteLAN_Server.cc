@@ -152,17 +152,17 @@ void TuteLAN_Server::update_game() {
 
 					int points = 20;
 					// el contenido en estos mensajes es el ID del jugador
-					if(legalCante(msg_send)){
+					if(legalCante(received)){
 						// Comprobamos si canta 40
 						if(msg_send.getInfo_2() == pinta)
 							points = 40;
 						if(turn % 2 == 0){
 							team1.gamePoints += points;
-							team1.cantes[msg_send.getInfo_2()] = true;									
+							team1.cantes[received.getInfo_2()] = true;									
 						}				
 						else{
 							team2.gamePoints += points;		
-							team2.cantes[msg_send.getInfo_2()] = true;		
+							team2.cantes[received.getInfo_2()] = true;		
 						}
 						//mandar mensaje a todos de quien ha cantado y en que palo
 						msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE, msg_send.getInfo_1(), msg_send.getInfo_2());								
@@ -181,7 +181,7 @@ void TuteLAN_Server::update_game() {
 
 				case TuteType::CANTE_TUTE:
 				{
-					if(legalCanteTute(msg_send)){
+					if(legalCanteTute(received)){
 						// team1 wins
 						if(turn % 2 == 0){
 							team1_points = POINTS_TO_WIN;

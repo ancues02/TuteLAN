@@ -384,6 +384,10 @@ void TuteLAN_Client::recv_thread()
 			//TO DO poner mensaje de texto en pantalla
 			break;
 		}
+		case TuteType::TUTE_WINNER:
+		{
+			exit_=true;
+		}
 		default:
 		std::cout << "MENSAJE RECIBIDO NO ESPERADO\n";
 		break;

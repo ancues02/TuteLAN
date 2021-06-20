@@ -16,8 +16,7 @@ enum TuteType : uint8_t {
     PINTA,
     CANTE,
     CANTE_TUTE,
-    ROUND_WINNER,
-    GAME_WINNER,
+    TUTE_WINNER,
     CARD,
     HAND
 };
