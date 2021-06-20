@@ -217,8 +217,7 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 			}
 			//mandar mensaje a todos de quien ha cantado y en que palo
 			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::CANTE, received.getInfo_1(), received.getInfo_2());								
-			broadcast_message(msg_send);
-								
+			broadcast_message(msg_send);								
 		}
 		else{
 			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::ILEGAL_MOVE, 0,0);
@@ -277,7 +276,6 @@ void TuteLAN_Server::createDesk(){
 		if(i%10==0)
 			suit++;
 		desk.push_back( { i%10, suit });
-		std::cout << (int)desk[i].number << "  "  << (int)desk[i].suit<< "\n";
 	}
 
 	for(uint8_t i=0; i< MAX_CLIENTS; ++i){
@@ -292,7 +290,7 @@ void TuteLAN_Server::distributeCards()
 	std::random_shuffle(desk.begin(), desk.end());
 
 	//empieza repartiendo al jugador de la derecha del que reparte
-	int player=mano;
+	int player=mano+1;
 
 	for (int i = 0; i < 10 * MAX_CLIENTS ; ++i){
 		handClients[player%MAX_CLIENTS].push_back(desk[i]);
@@ -301,10 +299,8 @@ void TuteLAN_Server::distributeCards()
 	//la pinta es la ultima	
 	pinta = desk[39].suit;
 
-	TuteMSG msg;
-	msg =TuteMSG("", TuteType::PINTA, desk[39].number, desk[39].suit);
-	broadcast_message(msg);
 	sleep(1);
+	TuteMSG msg;
 	for(int j = 0; j < 10; j++){		
 		for(int i = 0; i<clients.size(); ++i){
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
@@ -312,6 +308,8 @@ void TuteLAN_Server::distributeCards()
 		}	
 		sleep(1);	
 	}
+	msg =TuteMSG("", TuteType::PINTA, desk[39].number, desk[39].suit);
+	broadcast_message(msg);
 
 }
 

@@ -42,7 +42,7 @@ private:
 	std::vector<Card> roundCards;
 	int players[3]; 	//cartas de cada jugador
 
-	uint8_t pinta; 		// el palo dominante del juego, si es 4, no hay pinta todavía
+	uint8_t pinta_suit; // el palo dominante del juego, si es 4, no hay pinta todavía
 	uint8_t pinta_num;	// numero de la pinta para renderizarla
 	uint8_t turn;		//el turno 
 	Socket socket;		//mi socket

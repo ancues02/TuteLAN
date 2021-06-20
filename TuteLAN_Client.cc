@@ -22,7 +22,7 @@ void TuteLAN_Client::initGame() {
 	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
 
     texture = game_->getTextureMngr()->getTexture(Resources::Deck);
-	pinta = 4;
+	pinta_suit = 4;
 	pinta_num = 1;
 }
 
@@ -89,6 +89,7 @@ void TuteLAN_Client::renderGame(){
 		int despl = 300;
 		SDL_Rect rect, clip;
 
+		//Render cartas de cada jugador
 		for(int i=0; i < hand.size(); ++i){
 			// Jugador
 			rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
@@ -106,20 +107,20 @@ void TuteLAN_Client::renderGame(){
 			texture->render(rect,270, clip);
 		}
 
+		//Render cartas en la mesa
 		int center_offset = 80;
 		for(int i = 0; i < roundCards.size(); i++){
 			rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH * roundCards[i].number, CARD_HEIGHT * roundCards[i].suit, 67, 102 );
 			texture->render(rect,0, clip);
-		}	
-		
+		}		
+
+		// Render pinta
+		rect = RECT(_WINDOW_WIDTH_ - CARD_WIDTH - CARD_WIDTH / 4, CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
+		clip = RECT(CARD_WIDTH * (int)pinta_num, CARD_HEIGHT * (int)pinta_suit, 67, 102 );
+		texture->render(rect,0, clip);
 	
 	}
-
-	// Render pinta
-	SDL_Rect rect = RECT(_WINDOW_WIDTH_ - CARD_WIDTH - CARD_WIDTH / 4, CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
-	SDL_Rect clip = RECT(CARD_WIDTH * pinta_num, CARD_HEIGHT * pinta, 67, 102 );
-	texture->render(rect,0, clip);
 	
 }
 
@@ -173,7 +174,7 @@ void TuteLAN_Client::handleInput() {
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 1);
     			socket.send(msg);
 				input="\0";
-				std::cout << "Cantar en copas\n";
+				std::cout << "Can39tar en copas\n";
 			}
 			else if(ih->isKeyDown(SDLK_e) ){//rey y caballo de espadas
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 2);
@@ -350,9 +351,9 @@ void TuteLAN_Client::recv_thread()
 		}
 		case TuteType::PINTA:
 		{
-			pinta=received.getInfo_1();
-			pinta_num = received.getInfo_2();
-			std::cout << "La pinta es: " << (int)pinta << " "<< (int)pinta_num << "\n";
+			pinta_num = received.getInfo_1();
+			pinta_suit = received.getInfo_2();
+			std::cout << "La pinta es: " << (int)pinta_suit << " "<< (int)pinta_num << "\n";
 			break;
 		}
 		case TuteType::CARD:
@@ -379,7 +380,7 @@ void TuteLAN_Client::recv_thread()
 		{
 			//info1 es cliente e info 2 es palo
 			int points=20;
-			if(received.getInfo_2() == pinta)
+			if(received.getInfo_2() == pinta_suit)
 				points=40;
 			//TO DO poner mensaje de texto en pantalla
 			std::cout << "El jugador " << received.getInfo_1() << "ha cantado "<< points << "en " << received.getInfo_2() <<"\n"; 
