@@ -41,6 +41,7 @@ private:
 	std::vector<Card> roundCards;
 	int players[3]; 	//cartas de cada jugador
 
+	uint8_t pinta; 		// el palo dominante del juego	
 	uint8_t turn;		//el turno 
 	Socket socket;		//mi socket
 
