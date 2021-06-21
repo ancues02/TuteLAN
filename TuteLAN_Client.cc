@@ -245,7 +245,7 @@ void TuteLAN_Client::handleInput() {
 void TuteLAN_Client::playCard(InputHandler* ih){
 	if(turn != client_ID) return;
 
-	if(ih->isKeyDown(SDLK_t)){//jugar la carta en la posicion 0
+	if(ih->isKeyDown(SDLK_SPACE)){//jugar la carta en la posicion 0
 		if(hand.size() <= 0){
 			std::cout<<"No tienes cartas suficientes, prueba a pulsar un numero menor\n";
 		}
