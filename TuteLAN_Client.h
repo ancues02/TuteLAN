@@ -50,7 +50,7 @@ private:
 	std::string nick;		//nombre del jugador
 	std::vector<Card> hand; //las cartas que tiene
 	std::vector<Card> roundCards;
-	int players[3]; 	//cartas de cada jugador
+	int players[4]; 	//cartas de cada jugador
 
 	uint8_t pinta_suit; // el palo dominante del juego, si es 4, no hay pinta todavía
 	uint8_t pinta_num;	// numero de la pinta para renderizarla

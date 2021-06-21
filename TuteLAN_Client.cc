@@ -95,13 +95,14 @@ void TuteLAN_Client::renderGame(){
 		SDL_Rect rect, clip;
 
 		//Render cartas de cada jugador
+
 		for(int i=0; i < hand.size(); ++i){
 			// Jugador
 			rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
 			texture->render(rect,0, clip);
 			// Jugador arriba
-			rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
+			/*rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
 			texture->render(rect,180, clip);
 			// Jugador derecha
@@ -109,8 +110,24 @@ void TuteLAN_Client::renderGame(){
 			texture->render(rect,90, clip);
 			// Jugador izquierda
 			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 - despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
-			texture->render(rect,270, clip);
+			texture->render(rect,270, clip);*/
 		}
+
+
+		
+		int k=1;
+		
+		clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
+		for(int i=(client_ID +1) % 4; i != client_ID; i = (i+1)%4){
+			for(int j=0; j < players[i]; ++j){
+				rect = 	RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) + despl * sin(k * M_PI / 2) + CARD_OFFSET*(j- players[i]/2)* cos(k * M_PI / 2),
+						(_WINDOW_HEIGHT_ / 2  - CARD_HEIGHT / 2)+ despl * cos(k * M_PI / 2) + CARD_OFFSET*(j- players[i]/2)* sin(k * M_PI / 2), 
+						CARD_WIDTH,CARD_HEIGHT);
+				texture->render(rect,90 * k, clip);
+			}
+			k++;
+		}
+		
 
 		//Render cartas en la mesa
 		int center_offset = 80;
@@ -186,20 +203,21 @@ void TuteLAN_Client::render() {
 		SDL_Delay(10 - frameTime);
 }
 
-
+//se analiza el input
 void TuteLAN_Client::handleInput() {
 
 	auto ih = InputHandler::instance();
 	
 	ih->update();
 	if (ih->keyDownEvent()) {
+		//si se pulsa escape es para cerrar el cliente
 		if (ih->isKeyDown(SDLK_ESCAPE)) {
 			exit_ = true;	
 			TuteMSG msg(nick, TuteType::DISCONNECT, client_ID, 0);
 			socket.send(msg);	
 			std::cout << "ME voy\n";	
 		}
-		
+		//si no estamos en una partida, no leer mas input aparte de escape
 		else if(!in_game_) return;
 
 		//aqui mandar los mensajes
@@ -218,7 +236,7 @@ void TuteLAN_Client::handleInput() {
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 1);
     			socket.send(msg);
 				input="\0";
-				std::cout << "Can39tar en copas\n";
+				std::cout << "Cantar en copas\n";
 			}
 			else if(ih->isKeyDown(SDLK_e) ){//rey y caballo de espadas
 				TuteMSG msg(nick, TuteType::CANTE, client_ID, 2);
@@ -246,6 +264,7 @@ void TuteLAN_Client::handleInput() {
 	}
 }
 
+//este es el input de para jugar cartas, solo se puede hacer en tu turno
 void TuteLAN_Client::playCard(InputHandler* ih){
 	if(turn != client_ID) return;
 
@@ -351,7 +370,8 @@ void TuteLAN_Client::playCard(InputHandler* ih){
 	}
 }
 
-
+//se analizan los mensajes recibidos por parte del servidor
+//y se actualiza el estado del juego
 void TuteLAN_Client::recv_thread()
 {	
 	TuteMSG received;
@@ -374,21 +394,22 @@ void TuteLAN_Client::recv_thread()
 			tmp_limit = game_->getTime() + 4000;
 			break;
 		}
-		case TuteType::TURN:{
+		case TuteType::TURN:{//actualizar el turno
 			turn = received.getInfo_1();
 			std::cout << "TURN: Es el turno de: "<< (int)turn << "\n";
 			if(roundCards.size()>=4)
 				roundCards.clear();
 			break;
 		}
-		case TuteType::HAND:
-		{
-			
+		case TuteType::HAND://inicio de cada juego
+		{			
 			tmp_limit = game_->getTime()+1;
 			in_game_ = true;
 			hand.push_back({ received.getInfo_1(), received.getInfo_2()});
-			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano, nº cartas" << hand.size() << "\n";
-				
+			std::cout << "HAND: Recibo carta: " << (int)received.getInfo_1() << " " << (int)received.getInfo_2() << " para la mano, nº cartas" << hand.size() << "\n";				
+			for(int i = 0; i < 4; i++){
+				players[i] = hand.size();
+			}
 			break;
 		}
 		case TuteType::ILEGAL_MOVE:
@@ -398,7 +419,7 @@ void TuteLAN_Client::recv_thread()
 			tmp_limit = game_->getTime() + 4000;
 			break;
 		}
-		case TuteType::PINTA:
+		case TuteType::PINTA://se guarda la pinta y se muestra un mensaje(texto)
 		{
 			pinta_num = received.getInfo_1();
 			pinta_suit = received.getInfo_2();
@@ -414,6 +435,8 @@ void TuteLAN_Client::recv_thread()
 				tmpTxt += "bastos";
 			break;
 		}
+		//se ha jugado una carta, si es tu turno quitarla de tu mano
+		//poner la carta en el centro de la mesa
 		case TuteType::CARD:
 		{
 			Card card ={ received.getInfo_1(), received.getInfo_2() };
@@ -429,7 +452,11 @@ void TuteLAN_Client::recv_thread()
 					}
 					++i;
 				}
-			}			
+			}	
+			else{
+				//int turnPos = (turn - client_ID + 4) % 4;
+				players[turn]--;
+			}		
 			roundCards.push_back(card);
 			
 			break;
@@ -469,22 +496,32 @@ void TuteLAN_Client::recv_thread()
 				myTeamPoints+=received.getInfo_2();
 			else
 				otherTeamPoints+=received.getInfo_2();
-
+			//quitamos la pinta hasta que se vuelva a repartir
+			pinta_num=4;
+			pinta_suit=1;
 			break;
 		}
 		case TuteType::TUTE_WINNER:
 		{
-			tmpTxt="Ha ganado el equipo " + to_string(received.getInfo_1());
+			if(received.getInfo_1() == client_ID % 2)
+				tmpTxt="Ha ganado tu equipo ";
+			else
+				tmpTxt="Ha ganado el otro equipo ";
 			tmp_limit = game_->getTime() + 5000;
 			endGame=true;
 			break;
 		}
+		//reiniciar variables del juego
 		case TuteType::WAIT:
 		{
 			in_game_ = false;
 			hand.clear();
 			roundCards.clear();
-			for(int i = 0; i < 3; i++){
+			myTeamPoints=0;
+			otherTeamPoints=0;
+			pinta_num=4;
+			pinta_suit=1;
+			for(int i = 0; i < 4; i++){
 				players[i] = 0;
 			}
 			break;
