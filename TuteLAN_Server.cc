@@ -5,6 +5,8 @@
  */
 TuteLAN_Server::TuteLAN_Server(const char * s, const char * p) : socket(s,p) {
 	socket.bind();
+	pthread_mutex_init(&m, NULL);
+	pthread_cond_init(&wakeUp, NULL);
 }
 
 TuteLAN_Server::~TuteLAN_Server() {
@@ -49,6 +51,8 @@ void TuteLAN_Server::wait_players(){
         
         
 		client=new Socket(cliente_socket,&cliente,longCliente);
+		uint8_t clientID = available_IDs.front();
+		clientsPos[available_IDs.front()] = clients.size();
 		clients.push_back({ std::move(std::unique_ptr<Socket>(client)), available_IDs.front() } );
 
 		std::cout << "Pusheado socket, Nclients = " << clients.size() << "\n";
@@ -67,7 +71,7 @@ void TuteLAN_Server::wait_players(){
 
 			// Thread 
 			TuteLAN_Server* serv = this;
-			std::thread c_th = std::thread([client, serv](){
+			std::thread c_th = std::thread([client, clientID, serv](){	// seria clientID
 				bool _exit = false;
 				while(!_exit){
 					TuteMSG received;
@@ -77,7 +81,7 @@ void TuteLAN_Server::wait_players(){
 					}
 					std::cout << "SERVER: Mensaje Recibido\n";
 					
-					serv->handle_message(received, _exit);
+					serv->handle_message(received, clientID,_exit);
 
 					std::cout << "SERVER: Mensaje Procesado\n";
 				}
@@ -87,11 +91,29 @@ void TuteLAN_Server::wait_players(){
     }
 
 	disconnection = false;
-	turn = 0;
 	createDesk();
+	restart();
+
     update_game();
 }
 
+void TuteLAN_Server::restart(){
+    turn = 0;
+    mano = 0;
+    pinta = 0;
+    roundSuit = 0;
+    roundCount=0;
+    turnCount=0;
+    desk.clear();
+    handClients.clear();
+    round_cards.clear();
+    team1_cards.clear();
+    team2_cards.clear();
+    team1 = Team();
+    team2 = Team();
+	team1_points = 0;
+	team2_points = 0;
+}
 
 void TuteLAN_Server::update_game() {
 	/*
@@ -99,35 +121,22 @@ void TuteLAN_Server::update_game() {
 	 * 	las cartas al inicio de la partida, y gestionando el turno
 	 *	de cada jugador en la partida
 	 */
-	mano = 0;
-	turn = 0;
-	team1 = Team();
-	team2 = Team();
-	roundCount = turnCount = 0;
 
 	while(!disconnection && team1_points <= POINTS_TO_WIN && team2_points <= POINTS_TO_WIN){	// o termina una partida ?
 		
 		// Principo de juego
-		distributeCards();
-		mano %= MAX_CLIENTS;
-		turn = (mano + 1) % MAX_CLIENTS;
+		distributeCards(); break;
+		if(disconnection) break;
+		
+		std::cout << "Espero\n";	
+		pthread_cond_wait(&wakeUp, &m);
+		std::cout << "No Espero\n";
 
-		TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
-		broadcast_message(msg_send);
-
-		while(roundCount < 10 && !disconnection){
-			int no = 0;
-		}	// wait ( signal de algun thread )
-		//m.lock();
 		if(!disconnection) {
 			gameWinner();
 			mano++;
 			roundCount = 0;
 		}
-
-		//m.unlock();
-		
-		
 	}
 	if(disconnection){
 		TuteMSG msg = TuteMSG("\0", TuteType::WAIT, 0, 0);
@@ -147,7 +156,7 @@ void TuteLAN_Server::endGame(){
 	TuteMSG msg = TuteMSG("\0", TuteType::TUTE_WINNER, winner, 0);
 	broadcast_message(msg);
 	while(clients.size() > 0){
-		//esperar :D
+		pthread_cond_wait(&wakeUp, &m);
 	}
 	wait_players();
 
@@ -160,7 +169,7 @@ void TuteLAN_Server::broadcast_message(TuteMSG& msg){
 	sleep(1);
 }
 
-void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
+void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _exit){
 	switch (received.getType())
 	{
 	case TuteType::CARD:
@@ -184,7 +193,6 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 			// Mandar a todos la carta
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::CARD, card.number, card.suit);
 			broadcast_message(msg_send);
-			//m.lock();
 			
 			// Aumentamos turno
 			turnCount++;
@@ -193,6 +201,10 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 				// Decidir que equipo gana la ronda
 				turn = roundWinner();
 				roundCount++;
+
+				if(roundCount >= 10)
+					pthread_cond_signal(&wakeUp);
+
 				turnCount = 0;
 			}
 			else{
@@ -200,15 +212,13 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 				turn = (turn + 1) % MAX_CLIENTS;
 			}
 
-			//m.unlock();
-
 			msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
 			broadcast_message(msg_send);				
 		}
 		// Si la carta no es legal tiene que volver a elegir
 		else{
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::ILEGAL_MOVE, 0,0);
-			clients[turn].first.get()->send(msg_send);
+			clients[clientsPos[clientID]].first.get()->send(msg_send);
 		}
 		break;
 	}
@@ -220,6 +230,7 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 		int points = 20;
 		// el contenido en estos mensajes es el ID del jugador
 		if(legalCante(received)){
+			pthread_mutex_lock(&m);
 			// Comprobamos si canta 40
 			if(received.getInfo_2() == pinta)
 				points = 40;
@@ -231,20 +242,23 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 				team2.gamePoints += points;		
 				team2.cantes[received.getInfo_2()] = true;		
 			}
+			pthread_mutex_unlock(&m);
 			//mandar mensaje a todos de quien ha cantado y en que palo
 			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::CANTE, received.getInfo_1(), received.getInfo_2());								
 			broadcast_message(msg_send);								
 		}
 		else{
 			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::ILEGAL_MOVE, 0,0);
-			clients[received.getInfo_1()].first.get()->send(msg_send);
+			clients[clientsPos[clientID]].first.get()->send(msg_send);
 		}
+
 		break;
 	}
 
 	case TuteType::CANTE_TUTE:
 	{
 		if(legalCanteTute(received)){
+			pthread_mutex_lock(&m);
 			// team1 wins
 			if(turn % 2 == 0){
 				team1_points = POINTS_TO_WIN;
@@ -253,6 +267,8 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 			{
 				team2_points = POINTS_TO_WIN;
 			}
+			pthread_mutex_unlock(&m);
+
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE_TUTE, received.getInfo_1() % 2, received.getInfo_2());								
 			broadcast_message(msg_send);
 		}
@@ -261,23 +277,29 @@ void TuteLAN_Server::handle_message(TuteMSG& received, bool& _exit){
 
 	case TuteType::DISCONNECT:
 	{
-		
 		std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
 
+		pthread_mutex_lock(&m);
 		auto it = clients.begin();
-		while (it != clients.end() && it->second != received.getInfo_1())
-		{
+		while (it != clients.end() && it->second != received.getInfo_1()){
 			++it;
 		}
 
 		if(it !=  clients.end()){
 			clients.erase(it);
+			for(int i = 0; i < MAX_CLIENTS; i++){
+				if(clientsPos[i] > clientsPos[clientID])
+					clientsPos[i]--;
+			}
 
 			available_IDs.push(received.getInfo_1());
 			_exit = disconnection = true;
-
+			
+			pthread_cond_signal(&wakeUp);
 			std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
 		}
+		pthread_mutex_unlock(&m);
+
 
 		break;
 	}
@@ -319,6 +341,7 @@ void TuteLAN_Server::distributeCards()
 	TuteMSG msg;
 	for(int j = 0; j < 10; j++){		
 		for(int i = 0; i<clients.size(); ++i){
+			if(disconnection){ sleep(1); return;}
 			msg = TuteMSG(player_nicks[i], TuteType::HAND, handClients[i][j].number,  handClients[i][j].suit);
 			clients[i].first.get()->send(msg);
 		}	
@@ -327,6 +350,11 @@ void TuteLAN_Server::distributeCards()
 	msg =TuteMSG("", TuteType::PINTA, desk[39].number, desk[39].suit);
 	broadcast_message(msg);
 
+	mano %= MAX_CLIENTS;
+	turn = (mano + 1) % MAX_CLIENTS;
+
+	TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::TURN, turn, 0);		
+	broadcast_message(msg_send);
 }
 
 // Comprueba si el cliente puede poner la carta

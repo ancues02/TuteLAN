@@ -8,6 +8,9 @@
 #include "algorithm"
 #include <thread>
 #include <mutex>
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "TL_Socket.h"
 #include "TuteSerializable.h"
@@ -24,10 +27,10 @@ public:
 	void update_game();
 
 	// Thread function
-	void handle_message(TuteMSG& received, bool& _exit);
+	void handle_message(TuteMSG& received, uint8_t clientPos, bool& _exit);
 private:
 	static const uint8_t MAX_CLIENTS = 4;
-	const uint8_t POINTS_TO_WIN = 5;
+	const uint8_t POINTS_TO_WIN = 1;
 	// TO DO: hacer array
 	const std::map<uint8_t, std::pair<uint8_t, int>> CARD_VALUES = {
 		{ 0,{10, 11}},
@@ -59,8 +62,8 @@ private:
 	uint8_t roundWinner();
 	void gameWinner();
 	void endGame();
-
-	std::mutex m;
+	void restart();
+	//std::mutex m;
 	bool disconnection;
 	std::string player_nicks[MAX_CLIENTS];
 	uint8_t turn;		// 4 turnos cada ronda
@@ -83,5 +86,9 @@ private:
 
 	std::vector<std::pair<std::unique_ptr<Socket>, uint8_t>> clients;	//socket e ID
 	std::queue<uint8_t> available_IDs;
+	std::array<uint8_t, MAX_CLIENTS> clientsPos;
 	Socket socket;
+
+	pthread_cond_t wakeUp;
+	pthread_mutex_t m;
 };

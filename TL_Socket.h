@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <stdexcept>
-
+#include <unistd.h>
 #include <ostream>
 
 // -----------------------------------------------------------------------------
@@ -42,13 +42,8 @@ std::ostream& operator<<(std::ostream& os, const Socket& dt);
 class Socket
 {
 public:
-    /**
-     * TO DO: Mirar tamaño maximo mensaje TCP
-     * El máximo teórico de un mensaje TCP es 2^16, del que hay que
-     * descontar la cabecera UDP e IP (con las posibles opciones). Se debe
-     * utilizar esta constante para definir buffers de recepción.
-     */
-    static const int32_t MAX_MESSAGE_SIZE = 32768;
+
+    static const int32_t MAX_MESSAGE_SIZE = 32000;
 
     /**
      *  Construye el socket TCP con la dirección y puerto dados. Esta función
@@ -131,6 +126,11 @@ public:
     int connect(const sockaddr *sa_,socklen_t sa_len_ )
     {
         return ::connect(sd,  sa_, sa_len_);
+    }
+
+    int close()
+    {
+        return ::close(sd);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Socket& dt);

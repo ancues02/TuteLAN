@@ -15,11 +15,13 @@ TuteLAN_Client::TuteLAN_Client(const char * s, const char * p, const char * n):
 }
 
 TuteLAN_Client::~TuteLAN_Client() {
+	//socket
 	closeGame();
 }
 
 void TuteLAN_Client::initGame() {
-	game_ = SDLGame::init("TuteLAN", _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
+	std::string w_name = "TuteLAN " + nick;
+	game_ = SDLGame::init(w_name, _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
 
     texture = game_->getTextureMngr()->getTexture(Resources::Deck);
     turnTexture = game_->getTextureMngr()->getTexture(Resources::Turn);
@@ -179,6 +181,9 @@ void TuteLAN_Client::renderTempTxt(){
 	}
 	else if(endGame){
 		exit_=true;
+		TuteMSG msg(nick, TuteType::DISCONNECT, client_ID, 0);
+		socket.send(msg);	
+		std::cout << "ME voy\n";
 	}
 	
 
@@ -524,6 +529,7 @@ void TuteLAN_Client::recv_thread()
 			for(int i = 0; i < 4; i++){
 				players[i] = 0;
 			}
+
 			break;
 		}
 		default:
