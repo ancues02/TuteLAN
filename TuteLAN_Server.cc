@@ -211,7 +211,6 @@ void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _
 		int points = 20;
 		// el contenido en estos mensajes es el ID del jugador
 		if(legalCante(received)){
-			pthread_mutex_lock(&m);
 			// Comprobamos si canta 40
 			if(received.getInfo_2() == pinta)
 				points = 40;
@@ -223,7 +222,6 @@ void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _
 				team2.gamePoints += points;		
 				team2.cantes[received.getInfo_2()] = true;		
 			}
-			pthread_mutex_unlock(&m);
 			// Mandar mensaje a todos de quien ha cantado y en que palo
 			TuteMSG msg_send = TuteMSG(player_nicks[received.getInfo_1()], TuteType::CANTE, received.getInfo_1(), received.getInfo_2());								
 			broadcast_message(msg_send);								
@@ -239,7 +237,6 @@ void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _
 	case TuteType::CANTE_TUTE:
 	{
 		if(legalCanteTute(received)){
-			pthread_mutex_lock(&m);
 			// team1 wins
 			if(turn % 2 == 0){
 				team1_points = POINTS_TO_WIN;
@@ -248,7 +245,6 @@ void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _
 			{
 				team2_points = POINTS_TO_WIN;
 			}
-			pthread_mutex_unlock(&m);
 
 			TuteMSG msg_send = TuteMSG(player_nicks[turn], TuteType::CANTE_TUTE, received.getInfo_1() % 2, received.getInfo_2());								
 			broadcast_message(msg_send);
@@ -258,7 +254,8 @@ void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _
 
 	case TuteType::DISCONNECT:
 	{
-		pthread_mutex_lock(&m);
+		std::cout << "Desconexion\n";
+
 		auto it = clients.begin();
 		while (it != clients.end() && it->second != received.getInfo_1()){
 			++it;
@@ -277,7 +274,6 @@ void TuteLAN_Server::handle_message(TuteMSG& received, uint8_t clientID, bool& _
 			pthread_cond_signal(&wakeUp);
 			std::cout << "Desconexion de: " << (int)received.getInfo_1() << " Clientes " << clients.size() << " IDs " << available_IDs.size() <<"\n";
 		}
-		pthread_mutex_unlock(&m);
 		break;
 	}
 	}		

@@ -496,12 +496,11 @@ void TuteLAN_Client::recv_thread()
 			roundCards.clear();
 			myTeamPoints=0;
 			otherTeamPoints=0;
-			pinta_num=4;
-			pinta_suit=1;
+			pinta_num=1;
+			pinta_suit=4;
 			for(int i = 0; i < 4; i++){
 				players[i] = 0;
 			}
-
 			break;
 		}
 		default:
