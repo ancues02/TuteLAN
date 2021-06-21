@@ -497,8 +497,8 @@ void TuteLAN_Client::recv_thread()
 			else
 				otherTeamPoints+=received.getInfo_2();
 			//quitamos la pinta hasta que se vuelva a repartir
-			pinta_num=4;
-			pinta_suit=1;
+			pinta_suit = 4;
+			pinta_num = 1;
 			break;
 		}
 		case TuteType::TUTE_WINNER:

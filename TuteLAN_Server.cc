@@ -126,7 +126,7 @@ void TuteLAN_Server::update_game() {
 		}
 
 		//m.unlock();
-		//team1_points=6;
+		
 		
 	}
 	if(disconnection){

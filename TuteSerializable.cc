@@ -43,6 +43,7 @@ void TuteMSG::to_bin()
 
     memcpy(tmp, nick.c_str(), 8 * sizeof(char));
     //std::cout << "Nick: "<< nick<<"\n";
+    tmp[7*sizeof(char)]='\0';
 
 
 }
