@@ -11,6 +11,7 @@
 
 using namespace std;
 
+// Clase para gestionar los recursos y la ventana de SDL
 class SDLGame {
 public:
 	virtual ~SDLGame();

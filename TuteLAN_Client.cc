@@ -4,10 +4,6 @@
 #include "InputHandler.h"
 #include "SDL_macros.h"
 
-
-/*
- * Clase para el cliente del juego
- */
 TuteLAN_Client::TuteLAN_Client(const char * s, const char * p, const char * n):
 		socket(s, p, false), //
 		nick(n) {
@@ -15,12 +11,11 @@ TuteLAN_Client::TuteLAN_Client(const char * s, const char * p, const char * n):
 }
 
 TuteLAN_Client::~TuteLAN_Client() {
-	//socket
 	closeGame();
 }
 
 void TuteLAN_Client::initGame() {
-	std::string w_name = "TuteLAN " + nick;
+	std::string w_name = nick;
 	game_ = SDLGame::init(w_name, _WINDOW_WIDTH_, _WINDOW_HEIGHT_);
 
     texture = game_->getTextureMngr()->getTexture(Resources::Deck);
@@ -44,14 +39,11 @@ int TuteLAN_Client::connectToServer(const char * addr, const char * port){
 	hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	std::cout << "hola\n";
 	int rc = getaddrinfo(addr, port, &hints, &serv_res);
     if( rc != 0){
         std::cerr << "[getaddrinfo]: " << gai_strerror(rc) << '\n';
         return -1;
     }
-	std::cout << "adios\n";
-
 
     char buffer[80];
     int bytes;
@@ -81,8 +73,25 @@ void TuteLAN_Client::start() {
 	}
 }
 
-void TuteLAN_Client::renderGame(){
+void TuteLAN_Client::render() {
+	//recv el estado del juego del servidor
+	//si es tu turno, actualizas input y todo
+	Uint32 startTime = game_->getTime();
+	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0x006600FF));
+	SDL_RenderClear(game_->getRenderer());		
 
+	renderGame();
+	renderPoints();
+	renderTempTxt();
+
+	SDL_RenderPresent(game_->getRenderer());
+
+	Uint32 frameTime = game_->getTime() - startTime;
+	if (frameTime < 10)	// retardo de 10ms
+		SDL_Delay(10 - frameTime);
+}
+
+void TuteLAN_Client::renderGame(){
 	if(!in_game_){
 		Texture score (	game_->getRenderer(), 
         				"Waiting for players...",
@@ -96,29 +105,16 @@ void TuteLAN_Client::renderGame(){
 		int despl = 300;
 		SDL_Rect rect, clip;
 
-		//Render cartas de cada jugador
-
+		// Render cartas de cada jugador
 		for(int i=0; i < hand.size(); ++i){
-			// Jugador
 			rect = RECT(iniCardPos - 70 + (40 * i), _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 + despl, CARD_WIDTH, CARD_HEIGHT);
 			clip = RECT(CARD_WIDTH * hand[i].number, CARD_HEIGHT * hand[i].suit, 67, 102 );
 			texture->render(rect,0, clip);
-			// Jugador arriba
-			/*rect = RECT(iniCardPos + CARD_OFFSET * i,_WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2 - despl, CARD_WIDTH, CARD_HEIGHT);
-			clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
-			texture->render(rect,180, clip);
-			// Jugador derecha
-			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 + despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
-			texture->render(rect,90, clip);
-			// Jugador izquierda
-			rect = RECT( _WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2 - despl, iniCardPos + CARD_OFFSET * i, CARD_WIDTH, CARD_HEIGHT);
-			texture->render(rect,270, clip);*/
 		}
 
-
-		
 		int k=1;
 		
+		// Render cartas del resto de jugadores
 		clip = RECT(CARD_WIDTH, CARD_HEIGHT * 4, 67, 102 );
 		for(int i=(client_ID +1) % 4; i != client_ID; i = (i+1)%4){
 			for(int j=0; j < players[i]; ++j){
@@ -128,10 +124,9 @@ void TuteLAN_Client::renderGame(){
 				texture->render(rect,90 * k, clip);
 			}
 			k++;
-		}
-		
+		}		
 
-		//Render cartas en la mesa
+		// Render cartas en la mesa
 		int center_offset = 80;
 		for(int i = 0; i < roundCards.size(); i++){
 			rect = RECT((_WINDOW_WIDTH_ / 2 - CARD_WIDTH / 2) - center_offset + i * CARD_WIDTH, _WINDOW_HEIGHT_/ 2 - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT);
@@ -144,16 +139,14 @@ void TuteLAN_Client::renderGame(){
 		clip = RECT(CARD_WIDTH * (int)pinta_num, CARD_HEIGHT * (int)pinta_suit, 67, 102 );
 		texture->render(rect,0, clip);
 
-		//Render turno
+		// Render turno
 		int turnPos = (turn - client_ID + 4) % 4;
-		//std::cout << "Seno: " <<  sin(turnPos  * 90) << "  Coseno: " <<  cos(turnPos  * 90) << "\n";
 		rect = RECT((_WINDOW_WIDTH_ / 2 - turnTexture->getWidth() / 2) + (180 * sin(turnPos * M_PI / 180 * 90)),
 					(_WINDOW_HEIGHT_ / 2  - turnTexture->getHeight() / 2)+ (180 * cos(turnPos * M_PI / 180 * 90)), 50,50);
-		turnTexture->render(rect);
-	
-	}
-	
+		turnTexture->render(rect);	
+	}	
 }
+
 void TuteLAN_Client::renderPoints(){
 	// Render de puntuacion
 	Texture score (	game_->getRenderer(), 
@@ -183,29 +176,8 @@ void TuteLAN_Client::renderTempTxt(){
 		exit_=true;
 		TuteMSG msg(nick, TuteType::DISCONNECT, client_ID, 0);
 		socket.send(msg);	
-		std::cout << "ME voy\n";
+		std::cout << "Me voy\n";
 	}
-	
-
-}
-
-
-void TuteLAN_Client::render() {
-	//recv el estado del juego del servidor
-	//si es tu turno, actualizas input y todo
-	Uint32 startTime = game_->getTime();
-	SDL_SetRenderDrawColor(game_->getRenderer(), COLOR(0x006600FF));
-	SDL_RenderClear(game_->getRenderer());		
-
-	renderGame();
-	renderPoints();
-	renderTempTxt();
-
-	SDL_RenderPresent(game_->getRenderer());
-
-	Uint32 frameTime = game_->getTime() - startTime;
-	if (frameTime < 10)
-		SDL_Delay(10 - frameTime);
 }
 
 //se analiza el input
@@ -537,5 +509,4 @@ void TuteLAN_Client::recv_thread()
 			break;
 		}
     }
-	
 }

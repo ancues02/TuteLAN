@@ -11,7 +11,6 @@ SDL_TexturesManager::~SDL_TexturesManager() {
 	if (!initialized_)
 		return;
 
-	// free all textures
 	for (const auto &pair : textures_) {
 		if (pair.second != nullptr)
 			delete pair.second;
@@ -47,27 +46,8 @@ bool SDL_TexturesManager::loadFromImg(std::size_t tag,
 		return true;
 	}
 
-	// if we get here something went wrong
 	return false;
 }
-
-// bool SDLTexturesManager::loadFromText(std::size_t tag,
-// 		SDL_Renderer *renderer, const string &text, const Font *font,
-// 		const SDL_Color &color) {
-
-// 	if (!initialized_)
-// 		return false;
-
-// 	Texture *texture = new Texture(renderer, text, font, color);
-// 	if (texture->isReady()) {
-// 		storeTexture(tag, texture);
-// 		return true;
-// 	}
-
-// 	// if we get here something went wrong
-// 	return false;
-
-// }
 
 void SDL_TexturesManager::storeTexture(std::size_t tag, Texture *texture) {
 	Texture *curr = textures_[tag];

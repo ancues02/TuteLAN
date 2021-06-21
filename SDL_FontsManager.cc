@@ -11,7 +11,6 @@ SDL_FontsManager::~SDL_FontsManager() {
 	if (!initialized_)
 		return;
 
-	// free all sound effect chucks
 	for (const auto &font : fonts_) {
 		if (font.second != nullptr)
 			delete font.second;
@@ -25,11 +24,7 @@ bool SDL_FontsManager::init() {
 
 	int ttfInit_r = TTF_Init();
 	assert(ttfInit_r == 0);
-	/*
-	 if ( r != 0 ) {
-	 throw "Something went wrong with TTF_init";
-	 }
-	 */
+
 	initialized_ = true;
 
 	return true;

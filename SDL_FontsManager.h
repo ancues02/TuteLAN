@@ -3,15 +3,12 @@
 #include "Font.h"
 #include <map>
 
-/*
- *
- */
+// Clase para gestionar las fuentes
 class SDL_FontsManager {
 public:
 	SDL_FontsManager();
 	virtual ~SDL_FontsManager();
 
-	// supposed to be called before start using the object
 	bool init();
 
 	Font* getFont(std::size_t tag);
