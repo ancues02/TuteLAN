@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& os, const Socket& dt);
 class Socket
 {
 public:
-
+    // Capacidad maxima de un mensaje
     static const int32_t MAX_MESSAGE_SIZE = 32000;
 
     /**
@@ -54,6 +54,7 @@ public:
      *
      *    @param address cadena que representa la dirección o nombre
      *    @param port cadena que representa el puerto o nombre del servicio
+     *    @param passive booleano que representa si el socket debe tener el flag de passive
      */
     Socket(const char * address, const char * port, bool passive = true);
 
@@ -71,26 +72,14 @@ public:
      *    @param obj que recibirá los datos de la red. Se usará para la
      *    reconstrucción del objeto mediante Serializable::from_bin del interfaz.
      *
-     *    @param sock que identificará al extremo que envía los datos si es
-     *    distinto de 0 se creará un objeto Socket con la dirección y puerto.
-     *
      *    @return 0 en caso de éxito o -1 si error (cerrar conexión)
      */
     int recv(Serializable &obj);
-
-    /*int recv(Serializable &obj) //Descarta los datos del otro extremo
-    {
-        Socket * s = 0;
-
-        return recv(obj, s);
-    }*/
 
     /**
      *  Envía un mensaje de aplicación definido por un objeto Serializable.
      *
      *    @param obj en el que se enviará por la red. La función lo serializará
-     *
-     *    @param sock con la dirección y puerto destino
      *
      *    @return 0 en caso de éxito o -1 si error
      */
@@ -105,7 +94,7 @@ public:
     }
 
     /**
-     *  TODO comentar
+     *  Escucha para posibles conexiones al socket
      */
     int listen(int maxClients)
     {
@@ -113,7 +102,7 @@ public:
     }
 
     /**
-     * 
+     * Acepta la conexion del socket
      */
     int accept( sockaddr *sa_, socklen_t* sa_len_)
     {
@@ -121,13 +110,16 @@ public:
     }
 
     /**
-     * 
+     * Inicializa la conexion del socket
      */
     int connect(const sockaddr *sa_,socklen_t sa_len_ )
     {
         return ::connect(sd,  sa_, sa_len_);
     }
 
+    /**
+     * Acaba la conexion que tiene el socket
+     */
     int close()
     {
         return ::close(sd);

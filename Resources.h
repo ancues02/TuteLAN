@@ -14,13 +14,8 @@ public:
 		Turn,
 	};
 
-	// enum AudioId : std::size_t {
-	// 	// music
-		
-	// 	// sound effects
-	// };
-
 	enum FontId : std::size_t {
+		// fonts
 		ARIAL16, ARIAL24,
 	};
 
@@ -35,28 +30,9 @@ public:
 		std::string fileName;
 	};
 
-	// struct TextMsgInfo {
-	// 	TextureId id;
-	// 	string msg;
-	// 	SDL_Color color;
-	// 	FontId fontId;
-	// };
-
-	// struct MusicInfo {
-	// 	AudioId id;
-	// 	string fileName;
-	// };
-
-	// struct SoundInfo {
-	// 	AudioId id;
-	// 	string fileName;
-
-	// };
 
 	static std::vector<FontInfo> fonts_; // initialized in .cpp
 	static std::vector<ImageInfo> images_; // initialized in .cpp
-	//static vector<TextMsgInfo> messages_; // initialized in .cpp
-	//static vector<MusicInfo> musics_; // initialized in .cpp
-	//static vector<SoundInfo> sounds_; // initialized in .cpp
+	
 
 };
