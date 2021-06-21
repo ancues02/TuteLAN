@@ -16,7 +16,7 @@ class TuteLAN_Client {
 public:
 	TuteLAN_Client(const char * s, const char * p, const char * n);
 	virtual ~TuteLAN_Client();
-
+	
     int connectToServer(const char * addr, const char * port);
 	void start();
     void recv_thread();
